@@ -1,6 +1,6 @@
-from data_io import single_zarr
 import os
 import napari
+import dask.array as da
 import numpy as np
 from pathlib import Path
 from scipy import ndimage as ndi
@@ -167,9 +167,8 @@ class LabelCorrector:
         if time_index is None:
             self.time_index = slice(None) # ensure that the following two lines
                                           # work
-        # NOTE: single_zarr opens one channel of a multichannel image
-            # img[c, ...]
-        self.image = single_zarr(image_file, c=c)[self.time_index]
+        # Note: we assume a 5D array saved in ome-zarr order: tczyx
+        self.image = da.from_zarr(image_file)[self.time_index, c]
         self.labels = self._open_labels()
 
         # Vis Info
