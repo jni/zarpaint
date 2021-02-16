@@ -426,10 +426,3 @@ def watershed_split(
     # assign new values to the original labels
     labels = np.where(mask, new_labels, labels)
     return labels
-
-
-# Execute
-# -------
-if __name__ == '__main__':
-    path = '/Users/amcg0011/Data/pia-tracking/191113_IVMTR26_Inj3_cang_exp3.zarr'
-    correct_labels(path, labs, None, scale=(1, 1, 1, 4))
