@@ -61,9 +61,30 @@ def correct_labels(image_file, labels_file, time_index, scale=(1,1,4), c=2):
         (if this exists). If ndim > 3 and None specified
         the format will be assumed to be (c*, t, z, y, x)
     """
+    image = da.from_zarr(image_file)[time_index, c]
+    if os.path.exists(labels_file):
+        labels_temp = zarr.open(labels_file, mode='r')
+        metadata = {
+                'dtype': labels_temp.dtype.str,
+                'order': labels_temp.order,
+                'shape': labels_temp.shape,
+                }
+    else:
+        metadata = {'dtype': '<u4', 'shape': image.shape, 'order': 'C'}
+
+    dir, name = os.path.split(labels_file)
+    labels_ts_spec = {
+      'driver': 'zarr',
+      'kvstore': {
+        'driver': 'file',
+        'path': dir,
+      },
+      'path': name,
+      'metadata': metadata,
+    }
     lets_annotate = LabelCorrector(
                                    image_file,
-                                   labels_file,
+                                   labels_ts_spec,
                                    time_index,
                                    scale=scale,
                                    c=c
@@ -411,18 +432,4 @@ def watershed_split(
 # -------
 if __name__ == '__main__':
     path = '/Users/amcg0011/Data/pia-tracking/191113_IVMTR26_Inj3_cang_exp3.zarr'
-    #labs = '/Users/amcg0011/Data/pia-tracking/191113_IVMTR26_Inj3_cang_exp3_labels_t74_GT.zarr'
-    labs = {
-      'driver': 'zarr',
-      'kvstore': {
-        'driver': 'file',
-        'path': '/Users/amcg0011/Data/pia-tracking/',
-      },
-      'path': '191113_IVMTR26_Inj3_cang_exp3_labels.zarr',
-      'metadata': {
-        'dtype': '<i4',
-        'shape': [195, 512, 512, 33],
-        'order': 'C'
-      },
-    }
     correct_labels(path, labs, None, scale=(1, 1, 1, 4))
