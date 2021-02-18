@@ -1,10 +1,10 @@
 # zarpaint
 
-[![License](https://img.shields.io/pypi/l/zarpaint.svg?color=green)](https://github.com/jni/zarpaint/raw/master/LICENSE)
+[![License](https://img.shields.io/pypi/l/zarpaint.svg?color=green)](https://github.com/jni/zarpaint/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/zarpaint.svg?color=green)](https://pypi.org/project/zarpaint)
 [![Python Version](https://img.shields.io/pypi/pyversions/zarpaint.svg?color=green)](https://python.org)
 [![tests](https://github.com/jni/zarpaint/workflows/tests/badge.svg)](https://github.com/jni/zarpaint/actions)
-[![codecov](https://codecov.io/gh/jni/zarpaint/branch/master/graph/badge.svg)](https://codecov.io/gh/jni/zarpaint)
+[![codecov](https://codecov.io/gh/jni/zarpaint/branch/main/graph/badge.svg)](https://codecov.io/gh/jni/zarpaint)
 
 Paint segmentations directly to on-disk/remote zarr arrays
 
