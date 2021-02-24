@@ -28,7 +28,7 @@ parser.add_argument(
 
 
 def main():
-    args = parser.parse_args(sys.argv)
+    args = parser.parse_args(sys.argv[1:])
     correct_labels(
             args.image, args.labels,
             time_index=args.frame,
