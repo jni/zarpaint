@@ -11,12 +11,6 @@ from tensorstore import TensorStore
 import zarr
 
 
-# Monkey patch for ts.copy() - napari uses this but this should be resolved
-# soon.
-# Prevents errors when painting with napari - undo history uses data.copy()
-TensorStore.copy = TensorStore.__array__
-
-
 def correct_labels(image_file, labels_file, time_index, scale=(1,1,4), c=2):
     """
     Correct labels to create a ground truth with five opperations,
