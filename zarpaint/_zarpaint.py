@@ -36,10 +36,11 @@ def _on_create_labels_init(widget):
 
 def open_tensorstore(labels_file: pathlib.Path, *, shape, chunks=None):
     if not os.path.exists(labels_file):
-        zarr.create(
+        zarr.open(
+                str(labels_file),
+                mode='w',
                 shape=shape,
                 dtype=np.uint32,
-                store=str(labels_file),
                 chunks=chunks,
                 )
     # read some of the metadata for tensorstore driver from file
