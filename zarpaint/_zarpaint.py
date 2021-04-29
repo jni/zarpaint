@@ -44,7 +44,7 @@ def open_tensorstore(labels_file: pathlib.Path, *, shape, chunks=None):
                 chunks=chunks,
                 )
     # read some of the metadata for tensorstore driver from file
-    labels_temp = zarr.open(labels_file, mode='r')
+    labels_temp = zarr.open(str(labels_file), mode='r')
     metadata = {
             'dtype': labels_temp.dtype.str,
             'order': labels_temp.order,
