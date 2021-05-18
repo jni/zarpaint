@@ -93,9 +93,10 @@ def move_indices(axes_list, order):
 
 
 class DimsSorter(QWidget):
-    def __init__(self, viewer: 'napari.viewer.Viewer'):
+    def __init__(self, napari_viewer: 'napari.viewer.Viewer', parent=None):
+        super().__init__(parent=parent)
         from napari._qt.containers import QtListView
-        dims = viewer.dims
+        dims = napari_viewer.dims
         root = SelectableEventedList(
             [AxisModel(dims, i) for i in range(dims.ndim)]
         )
@@ -106,6 +107,7 @@ class DimsSorter(QWidget):
             lambda event, axes_list=root: move_indices(axes_list, event.value)
         )
         view = QtListView(root)
+        self.setLayout(QHBoxLayout())
         self.layout().addWidget(view)
 
 
