@@ -66,7 +66,6 @@ class DimsDelegate(QStyledItemDelegate):
 def set_dims_order(dims, order):
     if type(order[0]) == AxisModel:
         order = [a.axis for a in order]
-    print('setting order with callback')
     dims.order = order
 
 
@@ -135,8 +134,5 @@ if __name__ == '__main__':
     w.show()
 
     dims.order = (4, 3, 1, 0, 2)  # xyztc
-
-    print(root)
-    print(dims.order)
 
     napari.run()
