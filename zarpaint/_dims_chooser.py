@@ -71,7 +71,7 @@ def set_dims_order(dims, order):
 
 
 def _array_in_range(arr, low, high):
-    return (arr >= low) * (arr < high)
+    return (arr >= low) & (arr < high)
 
 
 def move_indices(axes_list, order):
