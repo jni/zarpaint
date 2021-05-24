@@ -31,29 +31,7 @@ class AxisModel:
             return repr(self) == other
 
 
-class DimsOrderWidget(QWidget):
-    def __init__(self, viewer: napari.Viewer, *args, **kwargs):
-        self.dims = viewer.dims
-        dims = self.dims
-
-        visible_axes = [AxisModel(dims, i) for i in dims.displayed]
-        sliced_axes = [AxisModel(dims, i) for i in dims.not_displayed]
-        self.visible_axes = SelectableEventedList(visible_axes)
-        self.sliced_axes = SelectableEventedList(sliced_axes)
-        self.visible_axes.events.reordered.connect(self.set_visible_order)
-        self.sliced_axes.events.reordered.connect(self.set_sliced_order)
-        self.ax2idx = dict(zip(dims.axis_labels, dims.order))
-        self.idx2ax = dict(zip(dims.order, dims.axis_labels))
-
-    def set_visible_order(self, order):
-        new_order = [ax.axis for ax in self.sliced_axes + order]
-        self.dims.order = new_order
-
-    def set_sliced_order(self, order):
-        new_order = [ax.axis for ax in order + self.visible_axes]
-        self.dims.order = new_order
-        
-
+# this class is currently unused — needed to paint visible dims differently
 class DimsDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         if index.row() > 3:
