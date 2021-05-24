@@ -34,7 +34,7 @@ def _on_create_labels_init(widget):
     widget.source_image.changed.connect(_set_default_labels_path(widget))
 
 
-def open_tensorstore(labels_file: pathlib.Path, *, shape, chunks=None):
+def open_tensorstore(labels_file: pathlib.Path, *, shape=None, chunks=None):
     if not os.path.exists(labels_file):
         zarr.open(
                 str(labels_file),
@@ -330,34 +330,6 @@ class LabelCorrector:
             viewer.layers['Points'].mode = 'pan_zoom'
 
 
-    def _watershed(self, viewer):
-        """
-        Execute watershed to split labels based on provided points.
-        Uses single time frame as data.
-        """
-        # find the labels corresponding to the current points in the points layer
-        labels = viewer.layers['Labels'].data
-        image = viewer.layers['Image'].data
-        points = viewer.layers['Points'].data
-        if self.ndim > 3: # dont read in more than one 3d frame at a time
-            idx = viewer.dims.current_step[self.t]
-            points = points[np.where(points[:, self.t] == idx)]
-            points = np.delete(points, self.t, axis=1)
-        else:
-            idx = slice(None)
-        labels = np.array(labels[idx])
-        image = np.array(image[idx])
-        points = np.round(points).astype(int)
-        labels = watershed_split(
-                                 image,
-                                 labels,
-                                 points,
-                                 compactness=200,
-                                 connectivity_octahedron=7
-                                 )
-        viewer.layers['Labels'].data[idx] = labels
-        viewer.layers['Points'].data = np.empty((0, self.ndim), dtype=float)
-        viewer.layers['Labels'].refresh()
 
 
     def _select_colour(self, viewer):
@@ -408,40 +380,3 @@ class LabelCorrector:
 
 # Split Objects
 # -------------
-def watershed_split(
-                    image,
-                    labels,
-                    points,
-                    compactness=200,
-                    connectivity_octahedron=7
-                    ):
-    """
-    Split labels with using points as markers for watershed
-    """
-    connectivity = octahedron(connectivity_octahedron)
-    points = np.round(points).astype(int)
-    coords = tuple([points[:, i] for i in range(points.shape[1])])
-    p_lab = labels[coords]
-    p_lab = np.unique(p_lab)
-    p_lab = p_lab[p_lab != 0]
-    # generate a mask corresponding to the labels that need to be split
-    mask = np.zeros(labels.shape, dtype=bool)
-    for lab in p_lab:
-        where = labels == lab
-        mask = mask + where
-    # split the labels using the points (in the masked image)
-    markers = np.zeros(labels.shape, dtype=bool)
-    markers[coords] = True
-    markers = ndi.label(markers)
-    markers = markers[0]
-    new_labels = watershed(
-                           image,
-                           markers=markers,
-                           mask=mask,
-                           compactness=compactness,
-                           connectivity=connectivity
-                           )
-    new_labels[new_labels != 0] += labels.max()
-    # assign new values to the original labels
-    labels = np.where(mask, new_labels, labels)
-    return labels
