@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from magicgui import magic_factory
 import numpy as np
 import napari
 from qtpy.QtWidgets import QStyledItemDelegate
@@ -86,6 +87,15 @@ class DimsSorter(QWidget):
         view = QtListView(root)
         self.setLayout(QHBoxLayout())
         self.layout().addWidget(view)
+
+
+@magic_factory(
+    call_button='set axis labels',
+    viewer={'visible': False},
+)
+def set_axis_labels(viewer: napari.Viewer, axes=''):
+    if type(axes) == str and len(axes) == viewer.dims.ndim:
+        viewer.dims.axis_labels = list(axes)
 
 
 if __name__ == '__main__':
