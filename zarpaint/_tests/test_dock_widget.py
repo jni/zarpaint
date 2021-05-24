@@ -3,7 +3,7 @@ import tempfile
 import napari
 import numpy as np
 from numpy.testing import assert_array_equal
-from zarpaint import create_labels
+from zarpaint import create_labels, DimsSorter
 
 
 def test_create_labels():
@@ -26,3 +26,16 @@ def test_create_labels():
         assert len(os.listdir(pth)) == 1  # .zarray
         arr[4, :256, :256] = 1  # touch 4 chunks
         assert len(os.listdir(pth)) == 5
+
+
+def test_dims_sorter(make_napari_viewer):
+    viewer = make_napari_viewer(strict_qt=False)
+    ndim = 5
+    viewer.add_points(np.random.random((10, ndim)) * 512)
+    sorter = DimsSorter(viewer)
+    new_order = (1, 0, 2, 3, 4)
+    viewer.dims.order = new_order
+    assert [sorter.axes_list[i].axis for i in range(ndim)] == list(new_order)
+    assert sorter.axes_list[0].dims is viewer.dims
+    sorter.axes_list.move(4, 3)
+    assert viewer.dims.order == (1, 0, 2, 4, 3)

@@ -85,6 +85,7 @@ class DimsSorter(QWidget):
             lambda event, axes_list=root: move_indices(axes_list, event.value)
         )
         view = QtListView(root)
+        self.axes_list = root
         self.setLayout(QHBoxLayout())
         self.layout().addWidget(view)
 
