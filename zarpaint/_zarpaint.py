@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import os
+import yaml
 
 from magicgui import magic_factory
 import dask.array as da
@@ -9,9 +10,6 @@ import napari
 import numpy as np
 import pathlib
 from pathlib import Path
-from scipy import ndimage as ndi
-from skimage.morphology import octahedron
-from skimage.segmentation import watershed
 import tensorstore as ts
 import zarr
 import toolz as tz
@@ -32,6 +30,29 @@ def _set_default_labels_path(widget, source_image_event):
 
 def _on_create_labels_init(widget):
     widget.source_image.changed.connect(_set_default_labels_path(widget))
+
+
+def create_ts_meta(labels_file: pathlib.Path, metadata):
+    """Create bespoke metadata yaml file within zarr array."""
+    fn = os.path.join(labels_file, '.naparimeta.yml')
+    with open(fn, 'w') as fout:
+        for key, val in metadata.items():
+            if type(val) == np.ndarray:
+                if np.issubdtype(val.dtype, np.floating):
+                    metadata[key] = list(map(float, val))
+                else:
+                    metadata[key] = list(map(int, val))
+        yaml.dump(metadata, fout)
+
+
+def open_ts_meta(labels_file: pathlib.Path) -> dict:
+    """Open bespoke metadata yaml file within zarr array, if present."""
+    fn = os.path.join(labels_file, '.naparimeta.yml')
+    meta = {}
+    if os.path.exists(fn):
+        with open(fn, 'r') as fin:
+            meta = yaml.safe_load(fin)
+    return meta
 
 
 def open_tensorstore(labels_file: pathlib.Path, *, shape=None, chunks=None):
@@ -110,6 +131,7 @@ def create_labels(
             'scale': source_image.scale,
             'translate': source_image.translate,
             }
+    create_ts_meta(labels_file, layer_metadata)
     return layer_data, layer_metadata, layer_type
 
 

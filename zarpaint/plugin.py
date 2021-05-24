@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import pathlib
 from napari_plugin_engine import napari_hook_implementation
-from ._zarpaint import create_labels, open_tensorstore
+from ._zarpaint import create_labels, open_tensorstore, open_ts_meta
 from ._dims_chooser import DimsSorter, set_axis_labels
 from ._watershed import watershed_split
 
@@ -40,4 +40,4 @@ def watershed():
 def zarr_tensorstore(path: str | pathlib.Path):
     if (str(path).endswith('.zarr')
             and os.path.isdir(path) and '.zarray' in os.listdir(path)):
-        return lambda path: [(open_tensorstore(path), {}, 'labels')]
+        return lambda path: [(open_tensorstore(path), open_ts_meta(path), 'labels')]
