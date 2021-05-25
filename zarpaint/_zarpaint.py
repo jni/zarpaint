@@ -1,96 +1,138 @@
+from __future__ import annotations
+
+import ast
 import os
-import napari
+import yaml
+
+from magicgui import magic_factory
 import dask.array as da
+import napari
 import numpy as np
+import pathlib
 from pathlib import Path
-from scipy import ndimage as ndi
-from skimage.morphology import octahedron
-from skimage.segmentation import watershed
 import tensorstore as ts
-from tensorstore import TensorStore
 import zarr
+import toolz as tz
 
 
-# Monkey patch for ts.copy() - napari uses this but this should be resolved
-# soon.
-# Prevents errors when painting with napari - undo history uses data.copy()
-TensorStore.copy = TensorStore.__array__
+@tz.curry
+def _set_default_labels_path(widget, source_image_event):
+    source_image = source_image_event.value
+    if (hasattr(source_image, 'source')  # napari <0.4.8
+            and source_image.source.path is not None):
+        source_path = pathlib.Path(source_image.source.path)
+        if source_path.suffix != '.zarr':
+            labels_path = source_path.with_suffix('.zarr')
+        else:
+            labels_path = source_path.with_suffix('.labels.zarr')
+        widget.labels_file.value = labels_path
 
 
-def correct_labels(image_file, labels_file, time_index, scale=(1,1,4), c=2):
-    """
-    Correct labels to create a ground truth with five opperations,
-    each of which correspond to the following number key.
-        (1) toggel selection of points - to seed watershed to split
-            labels.
-        (2) watershed - recompute watershed for joined labels based on
-            chosen points.
-        (3) toggle pick label colour - choose the colour of the label
-            with which to paint.
-        (4) toggle label fill mode - for merging labels
-        (5) toggel paint mode - paint new label.
+def _on_create_labels_init(widget):
+    widget.source_image.changed.connect(_set_default_labels_path(widget))
 
-    Output can be saved to a new file by using Control-s.
 
-    NOTE: 4D annotation: if the zarr is chunked across time (for reading
-    frames: e.g., 1, None, None, None) then rolling the dims might
-    cause big issues, as there is no way to prevent the t dim from being rolled
-    as you progress through the permutations.
-    I.e., more data than RAM -> blow up napari -> swear @ computer
-        -> kill script (easier to restart to look at another view)
+def create_ts_meta(labels_file: pathlib.Path, metadata):
+    """Create bespoke metadata yaml file within zarr array."""
+    fn = os.path.join(labels_file, '.naparimeta.yml')
+    with open(fn, 'w') as fout:
+        for key, val in metadata.items():
+            if type(val) == np.ndarray:
+                if np.issubdtype(val.dtype, np.floating):
+                    metadata[key] = list(map(float, val))
+                else:
+                    metadata[key] = list(map(int, val))
+        yaml.dump(metadata, fout)
 
-    Parameters
-    ----------
-    image_file: str
-        Path to the image data (.zarr)
-    labels_file: str or dict
-        str: Path to the labels data (.zarr)
-        dict: tensorstore spec for opening the file
-            (also .zarr)
-    time_index: int or None
-            None: all frames
-            int: one frame
-            TODO: slice: selection of frames
-                (must reindex ts when slicing or napari has issues)
-    scale: tuple of int
-        scale of image and labels for napari
-    c: int
-        the channel to read from the image
-    t: int or none
-        position of the time index in the labels file
-        (if this exists). If ndim > 3 and None specified
-        the format will be assumed to be (c*, t, z, y, x)
-    """
-    image = da.from_zarr(image_file)[time_index, c]
-    if os.path.exists(labels_file):
-        labels_temp = zarr.open(labels_file, mode='r')
-        metadata = {
-                'dtype': labels_temp.dtype.str,
-                'order': labels_temp.order,
-                'shape': labels_temp.shape,
-                }
-    else:
-        metadata = {'dtype': '<u4', 'shape': image.shape, 'order': 'C'}
+
+def open_ts_meta(labels_file: pathlib.Path) -> dict:
+    """Open bespoke metadata yaml file within zarr array, if present."""
+    fn = os.path.join(labels_file, '.naparimeta.yml')
+    meta = {}
+    if os.path.exists(fn):
+        with open(fn, 'r') as fin:
+            meta = yaml.safe_load(fin)
+    return meta
+
+
+def open_tensorstore(labels_file: pathlib.Path, *, shape=None, chunks=None):
+    if not os.path.exists(labels_file):
+        zarr.open(
+                str(labels_file),
+                mode='w',
+                shape=shape,
+                dtype=np.uint32,
+                chunks=chunks,
+                )
+    # read some of the metadata for tensorstore driver from file
+    labels_temp = zarr.open(str(labels_file), mode='r')
+    metadata = {
+            'dtype': labels_temp.dtype.str,
+            'order': labels_temp.order,
+            'shape': labels_temp.shape,
+            }
 
     dir, name = os.path.split(labels_file)
     labels_ts_spec = {
-      'driver': 'zarr',
-      'kvstore': {
-        'driver': 'file',
-        'path': dir,
-      },
-      'path': name,
-      'metadata': metadata,
-    }
-    lets_annotate = LabelCorrector(
-                                   image_file,
-                                   labels_ts_spec,
-                                   time_index,
-                                   scale=scale,
-                                   c=c
-                                   )
-    lets_annotate()
+            'driver': 'zarr',
+            'kvstore': {
+                    'driver': 'file',
+                    'path': dir,
+                    },
+            'path': name,
+            'metadata': metadata,
+            }
+    data = ts.open(labels_ts_spec, create=False, open=True).result()
+    return data
 
+
+@magic_factory(
+        labels_file={'mode': 'w'},
+        widget_init=_on_create_labels_init,
+        )
+def create_labels(
+        source_image: napari.layers.Image,
+        labels_file: pathlib.Path,
+        chunks='',
+        ) -> napari.types.LayerDataTuple:
+    """Create/load a zarr array as a labels layer based on image layer.
+
+    Parameters
+    ----------
+    source_image : Image layer
+        The image that we are segmenting.
+    labels_file : pathlib.Path
+        The path to the zarr file to be created.
+    chunks : str, optional
+        A string that can be evaluated as a tuple of ints specifying the chunk
+        size for the zarr file. If empty, they will be (128, 128) along the
+        last dimensions and (1) along any remaining dimensions. This argument
+        has no effect if the file already exists.
+    """
+    if chunks:
+        chunks_str = chunks
+        chunks = ast.literal_eval(chunks)
+        if (type(chunks) is not tuple
+                or not all(isinstance(val, int) for val in chunks)):
+            raise ValueError(
+                'chunks should be a tuple of ints, e.g. "(1, 1, 512, 512)", '
+                f'got {chunks_str}'
+                )
+    else:  # use default
+        chunks = (1,) * (source_image.ndim - 2) + (128, 128)
+
+    layer_data = open_tensorstore(
+            labels_file,
+            shape=source_image.data.shape,
+            chunks=chunks,
+            )
+    layer_type = 'labels'
+    layer_metadata = {
+            'scale': source_image.scale,
+            'translate': source_image.translate,
+            }
+    create_ts_meta(labels_file, layer_metadata)
+    return layer_data, layer_metadata, layer_type
 
 
 class LabelCorrector:
@@ -241,7 +283,6 @@ class LabelCorrector:
         labels_file = self.labels_file
         if self.tensorstore:
             # labels file should be the spec dict for tensorstore
-            labels = ts.open(labels_file, create=False, open=True).result()
             if not self.gt_file:
                 # we need to apply the slice and so need to construct
                 # the correct tuple of int / slices
@@ -311,34 +352,6 @@ class LabelCorrector:
             viewer.layers['Points'].mode = 'pan_zoom'
 
 
-    def _watershed(self, viewer):
-        """
-        Execute watershed to split labels based on provided points.
-        Uses single time frame as data.
-        """
-        # find the labels corresponding to the current points in the points layer
-        labels = viewer.layers['Labels'].data
-        image = viewer.layers['Image'].data
-        points = viewer.layers['Points'].data
-        if self.ndim > 3: # dont read in more than one 3d frame at a time
-            idx = viewer.dims.current_step[self.t]
-            points = points[np.where(points[:, self.t] == idx)]
-            points = np.delete(points, self.t, axis=1)
-        else:
-            idx = slice(None)
-        labels = np.array(labels[idx])
-        image = np.array(image[idx])
-        points = np.round(points).astype(int)
-        labels = watershed_split(
-                                 image,
-                                 labels,
-                                 points,
-                                 compactness=200,
-                                 connectivity_octahedron=7
-                                 )
-        viewer.layers['Labels'].data[idx] = labels
-        viewer.layers['Points'].data = np.empty((0, self.ndim), dtype=float)
-        viewer.layers['Labels'].refresh()
 
 
     def _select_colour(self, viewer):
@@ -389,40 +402,3 @@ class LabelCorrector:
 
 # Split Objects
 # -------------
-def watershed_split(
-                    image,
-                    labels,
-                    points,
-                    compactness=200,
-                    connectivity_octahedron=7
-                    ):
-    """
-    Split labels with using points as markers for watershed
-    """
-    connectivity = octahedron(connectivity_octahedron)
-    points = np.round(points).astype(int)
-    coords = tuple([points[:, i] for i in range(points.shape[1])])
-    p_lab = labels[coords]
-    p_lab = np.unique(p_lab)
-    p_lab = p_lab[p_lab != 0]
-    # generate a mask corresponding to the labels that need to be split
-    mask = np.zeros(labels.shape, dtype=bool)
-    for lab in p_lab:
-        where = labels == lab
-        mask = mask + where
-    # split the labels using the points (in the masked image)
-    markers = np.zeros(labels.shape, dtype=bool)
-    markers[coords] = True
-    markers = ndi.label(markers)
-    markers = markers[0]
-    new_labels = watershed(
-                           image,
-                           markers=markers,
-                           mask=mask,
-                           compactness=compactness,
-                           connectivity=connectivity
-                           )
-    new_labels[new_labels != 0] += labels.max()
-    # assign new values to the original labels
-    labels = np.where(mask, new_labels, labels)
-    return labels

@@ -4,6 +4,14 @@ except ImportError:
     __version__ = "unknown"
 
 
+from ._zarpaint import create_labels, open_tensorstore
+from ._dims_chooser import DimsSorter, set_axis_labels
+from ._watershed import watershed_split
 
-from ._dock_widget import napari_experimental_provide_dock_widget
-
+__all__ = [
+    'create_labels',
+    'open_tensorstore',
+    'DimsSorter',
+    'set_axis_labels',
+    'watershed_split',
+]

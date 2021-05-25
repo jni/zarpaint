@@ -52,9 +52,7 @@ setup(
         'License :: OSI Approved :: BSD License',
     ],
     entry_points={
-    #    'napari.plugin': [
-    #        'zarpaint = zarpaint',
-    #    ],
+        'napari.plugin': ['zarpaint = zarpaint.plugin'],
         'console_scripts': ['zarpaint = zarpaint._main:main']
     },
 )
