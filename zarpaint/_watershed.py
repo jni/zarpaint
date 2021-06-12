@@ -5,6 +5,18 @@ from skimage.morphology import octahedron
 from skimage.segmentation import watershed
 
 
+def slice_points(points_layer, dims, ndim):
+    tf = points_layer._transforms['data2world'].inverse
+    steps = tf.scale[:-ndim] * np.array(dims.range)[:-ndim, 2]
+    pt = tf(np.array(dims.point))[:-ndim]
+    data = points_layer.data
+    sel = np.ones(data.shape[0], dtype=bool)
+    for i, (p, st) in enumerate(zip(pt, steps)):
+        sel &= p - st/2 <= data[:, i]
+        sel &= data[:, i] < p + st/2
+    return data[sel]
+
+
 @magic_factory(
     call_button='Split',
     viewer={'visible': False},
@@ -37,17 +49,17 @@ def watershed_split(
     slice_idx = coord[:-ndim]
     # find the labels corresponding to the current points in the points layer
     labels_sliced = np.asarray(labels.data[slice_idx])
-    points_slicer = np.ones(points.data.shape[0], dtype=bool)
-    for dim, idx in enumerate(slice_idx):
-        points_slicer &= points.data[:, dim] == idx
-    points_sliced = np.round(
-            points.data[points_slicer][:, -ndim:]
-            ).astype(int)
+    points_sliced = slice_points(points, viewer.dims, ndim)
+    points_data_to_world = points._transforms['data2world']
+    labels_world_to_data = labels._transforms['data2world'].inverse
+    points_transformed = labels_world_to_data(
+            points_data_to_world(points_sliced)
+            ).astype(int)[:, -ndim:]
     image = np.ones_like(labels_sliced, dtype=np.uint8)
     labels_split = _watershed_split(
             image,
             labels_sliced,
-            points_sliced,
+            points_transformed,
             compactness=200,
             connectivity_octahedron=7,
             )
