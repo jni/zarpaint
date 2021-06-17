@@ -1,6 +1,6 @@
 # zarpaint
 
-[![License](https://img.shields.io/pypi/l/zarpaint.svg?color=green)](https://github.com/jni/zarpaint/raw/master/LICENSE)
+[![License](https://img.shields.io/pypi/l/zarpaint.svg?color=green)](https://github.com/jni/zarpaint/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/zarpaint.svg?color=green)](https://pypi.org/project/zarpaint)
 [![Python Version](https://img.shields.io/pypi/pyversions/zarpaint.svg?color=green)](https://python.org)
 [![tests](https://github.com/jni/zarpaint/workflows/tests/badge.svg)](https://github.com/jni/zarpaint/actions)
