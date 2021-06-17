@@ -1,6 +1,11 @@
+magicgui
+napari
 napari-plugin-engine>=0.1.4
 numpy
 pyyaml
+qtpy
+scipy
 scikit-image
 tensorstore
+toolz
 zarr
