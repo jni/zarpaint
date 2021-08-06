@@ -3,18 +3,8 @@ from scipy import ndimage as ndi
 from magicgui import magic_factory
 from skimage.morphology import octahedron
 from skimage.segmentation import watershed
-
-
-def slice_points(points_layer, dims, ndim):
-    tf = points_layer._transforms['data2world'].inverse
-    steps = tf.scale[:-ndim] * np.array(dims.range)[:-ndim, 2]
-    pt = tf(np.array(dims.point))[:-ndim]
-    data = points_layer.data
-    sel = np.ones(data.shape[0], dtype=bool)
-    for i, (p, st) in enumerate(zip(pt, steps)):
-        sel &= p - st/2 <= data[:, i]
-        sel &= data[:, i] < p + st/2
-    return data[sel]
+from ._points_util import slice_points
+import napari
 
 
 @magic_factory(
@@ -23,9 +13,9 @@ def slice_points(points_layer, dims, ndim):
     ndim={'min': 2, 'max': 3},
 )
 def watershed_split(
-        viewer: 'napari.viewer.Viewer',
-        labels: 'napari.layers.Labels',
-        points: 'napari.layers.Points',
+        viewer: napari.viewer.Viewer,
+        labels: napari.layers.Labels,
+        points: napari.layers.Points,
         ndim: int = 3,
         ):
     """Execute watershed to split labels based on provided points.
@@ -50,8 +40,8 @@ def watershed_split(
     # find the labels corresponding to the current points in the points layer
     labels_sliced = np.asarray(labels.data[slice_idx])
     points_sliced = slice_points(points, viewer.dims, ndim)
-    points_data_to_world = points._transforms['data2world']
-    labels_world_to_data = labels._transforms['data2world'].inverse
+    points_data_to_world = points._transforms[1:3].simplified
+    labels_world_to_data = labels._transforms[1:3].simplified.inverse
     points_transformed = labels_world_to_data(
             points_data_to_world(points_sliced)
             ).astype(int)[:, -ndim:]
