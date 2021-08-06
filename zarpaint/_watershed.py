@@ -4,7 +4,6 @@ from magicgui import magic_factory
 from skimage.morphology import octahedron
 from skimage.segmentation import watershed
 from ._points_util import slice_points
-import napari
 
 
 @magic_factory(
@@ -13,9 +12,9 @@ import napari
     ndim={'min': 2, 'max': 3},
 )
 def watershed_split(
-        viewer: napari.viewer.Viewer,
-        labels: napari.layers.Labels,
-        points: napari.layers.Points,
+        viewer: 'napari.viewer.Viewer',
+        labels: 'napari.layers.Labels',
+        points: 'napari.layers.Points',
         ndim: int = 3,
         ):
     """Execute watershed to split labels based on provided points.
