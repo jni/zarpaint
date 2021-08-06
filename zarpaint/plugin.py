@@ -68,6 +68,7 @@ def _add_points_callback():
             world_click_coordinates = find_midpoint_of_first_segment(
                 layer, event
             )
-            pts_coordinates = pts_world2data(world_click_coordinates)
-            points.add(pts_coordinates)
+            if world_click_coordinates is not None:
+                pts_coordinates = pts_world2data(world_click_coordinates)
+                points.add(pts_coordinates)
     return add_points_3d_with_alt_click
