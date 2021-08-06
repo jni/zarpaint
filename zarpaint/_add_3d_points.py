@@ -71,7 +71,7 @@ def find_midpoint_of_first_segment(layer, event):
         ray_padded = np.pad(
             ray, pad_width=1, mode='constant', constant_values=0
         )
-        diff_coords = np.flatnonzero(np.diff(ray_padded)) - 1
+        diff_coords = np.flatnonzero(np.diff(ray_padded))
         if len(diff_coords) > 1:
             blob_start_end = coordinates[diff_coords[:2]]
             blob_mid = np.mean(blob_start_end, axis=0)
