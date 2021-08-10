@@ -1,3 +1,5 @@
+import magicgui
+import napari
 import numpy as np
 
 
@@ -80,3 +82,25 @@ def find_midpoint_of_first_segment(layer, event):
         else:
             coordinates = None
     return coordinates
+
+
+@magicgui.magic_factory
+def add_points_3d_with_alt_click(
+    labels: napari.layers.Labels,
+    points: napari.layers.Points,
+):
+    pts_world2data = points._transforms[1:3].simplified.inverse
+
+    @labels.mouse_drag_callbacks.append
+    def click_callback(layer, event):
+        if not (
+            len(event.modifiers) == 1
+            and event.modifiers[0].name == 'Alt'
+        ):
+            return
+        world_click_coordinates = find_midpoint_of_first_segment(
+            layer, event
+        )
+        if world_click_coordinates is not None:
+            pts_coordinates = pts_world2data(world_click_coordinates)
+            points.add(pts_coordinates)
