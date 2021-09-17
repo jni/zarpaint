@@ -9,11 +9,11 @@ from zarpaint.plugin import zarr_tensorstore
 
 def test_create_labels():
     image = napari.layers.Image(
-        np.random.random((10, 512, 512)),
-        name='img',
-        scale=[4, 1, 1],
-        translate=[1000, -1000, -2000],
-        )
+            np.random.random((10, 512, 512)),
+            name='img',
+            scale=[4, 1, 1],
+            translate=[1000, -1000, -2000],
+            )
     create_labels_ = create_labels()  # instance from magic_factory
     with tempfile.TemporaryDirectory() as tmpdir:
         pth = os.path.join(tmpdir, 'labels.zarr')
@@ -44,11 +44,11 @@ def test_dims_sorter(make_napari_viewer):
 
 def test_open_tensorstore():
     image = napari.layers.Image(
-        np.random.random((10, 512, 512)),
-        name='img',
-        scale=[4, 1, 1],
-        translate=[1000, -1000, -2000],
-        )
+            np.random.random((10, 512, 512)),
+            name='img',
+            scale=[4, 1, 1],
+            translate=[1000, -1000, -2000],
+            )
     create_labels_ = create_labels()  # instance from magic_factory
     with tempfile.TemporaryDirectory() as tmpdir:
         pth = os.path.join(tmpdir, 'labels.zarr')

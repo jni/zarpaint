@@ -11,7 +11,6 @@ from qtpy.QtWidgets import QWidget, QHBoxLayout
 
 class AxisModel:
     """View of an axis within a dims model keeping track of axis names."""
-
     def __init__(self, dims: napari.components.Dims, axis: int):
         self.dims = dims
         self.axis = axis
@@ -58,10 +57,8 @@ def move_indices(axes_list, order):
         if tuple(axes_list) == tuple(order):
             return
         ax_to_existing_position = {a: ix for ix, a in enumerate(axes)}
-        move_list = np.asarray([
-            (ax_to_existing_position[order[i]], i)
-            for i in range(len(order))
-        ])
+        move_list = np.asarray([(ax_to_existing_position[order[i]], i)
+                                for i in range(len(order))])
         for src, dst in move_list:
             axes_list.move(src, dst)
             move_list[_array_in_range(move_list[:, 0], dst, src)] += 1
@@ -75,15 +72,16 @@ class DimsSorter(QWidget):
         super().__init__(parent=parent)
         from napari._qt.containers import QtListView
         dims = napari_viewer.dims
-        root = SelectableEventedList(
-            [AxisModel(dims, i) for i in range(dims.ndim)]
-        )
+        root = SelectableEventedList([
+                AxisModel(dims, i) for i in range(dims.ndim)
+                ])
         root.events.reordered.connect(
-            lambda event, dims=dims: set_dims_order(dims, event.value)
-        )
+                lambda event, dims=dims: set_dims_order(dims, event.value)
+                )
         dims.events.order.connect(
-            lambda event, axes_list=root: move_indices(axes_list, event.value)
-        )
+                lambda event, axes_list=root:
+                move_indices(axes_list, event.value)
+                )
         view = QtListView(root)
         self.axes_list = root
         self.setLayout(QHBoxLayout())
@@ -91,9 +89,9 @@ class DimsSorter(QWidget):
 
 
 @magic_factory(
-    call_button='set axis labels',
-    viewer={'visible': False},
-)
+        call_button='set axis labels',
+        viewer={'visible': False},
+        )
 def set_axis_labels(viewer: napari.Viewer, axes=''):
     if type(axes) == str and len(axes) == viewer.dims.ndim:
         viewer.dims.axis_labels = list(axes)
@@ -107,12 +105,12 @@ if __name__ == '__main__':
     # create a python model
     root = SelectableEventedList([AxisModel(dims, i) for i in range(5)])
     root.events.reordered.connect(
-        lambda event, dims=dims: set_dims_order(dims, event.value)
-    )
+            lambda event, dims=dims: set_dims_order(dims, event.value)
+            )
     # note: we don't yet handle expanding the order
     dims.events.order.connect(
-        lambda event, axes_list=root: move_indices(axes_list, event.value)
-    )
+            lambda event, axes_list=root: move_indices(axes_list, event.value)
+            )
 
     # create Qt views onto the python models
     view = QtListView(root)
