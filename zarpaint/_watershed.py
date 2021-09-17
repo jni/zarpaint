@@ -7,10 +7,10 @@ from ._points_util import slice_points
 
 
 @magic_factory(
-    call_button='Split',
-    viewer={'visible': False},
-    ndim={'min': 2, 'max': 3},
-)
+        call_button='Split',
+        viewer={'visible': False},
+        ndim={'min': 2, 'max': 3},
+        )
 def watershed_split(
         viewer: 'napari.viewer.Viewer',
         labels: 'napari.layers.Labels',
@@ -58,11 +58,7 @@ def watershed_split(
 
 
 def _watershed_split(
-        image,
-        labels,
-        points,
-        compactness=200,
-        connectivity_octahedron=7
+        image, labels, points, compactness=200, connectivity_octahedron=7
         ):
     """
     Split labels with using points as markers for watershed
