@@ -4,7 +4,7 @@ import napari
 import numpy as np
 from numpy.testing import assert_array_equal
 from zarpaint import create_labels, DimsSorter
-from zarpaint.plugin import zarr_tensorstore
+from zarpaint.reader import zarr_tensorstore
 
 
 def test_create_labels():
