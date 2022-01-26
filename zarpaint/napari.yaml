@@ -17,121 +17,23 @@ contributions:
   - id: zarpaint.watershed_split
     title: Create watershed_split
     python_name: zarpaint:watershed_split
-  - id: zarpaint.add_points_3d_with_alt_click
-    title: Create add_points_3d_with_alt_click
-    python_name: zarpaint:add_points_3d_with_alt_click
-  - id: zarpaint.set_axis_labels
-    title: Create set_axis_labels
-    python_name: zarpaint:set_axis_labels
-  - id: zarpaint.DimsSorter
-    title: Create Dims Sorter
-    python_name: zarpaint:DimsSorter
-  - id: zarpaint.create_labels
-    title: Create create_labels
-    python_name: zarpaint:create_labels
-  - id: zarpaint.watershed_split
-    title: Create watershed_split
-    python_name: zarpaint:watershed_split
-  - id: zarpaint.add_points_3d_with_alt_click
-    title: Create add_points_3d_with_alt_click
-    python_name: zarpaint:add_points_3d_with_alt_click
-  - id: zarpaint.set_axis_labels
-    title: Create set_axis_labels
-    python_name: zarpaint:set_axis_labels
-  - id: zarpaint.DimsSorter
-    title: Create Dims Sorter
-    python_name: zarpaint:DimsSorter
-  - id: zarpaint.create_labels
-    title: Create create_labels
-    python_name: zarpaint:create_labels
-  - id: zarpaint.watershed_split
-    title: Create watershed_split
-    python_name: zarpaint:watershed_split
-  - id: zarpaint.add_points_3d_with_alt_click
-    title: Create add_points_3d_with_alt_click
-    python_name: zarpaint:add_points_3d_with_alt_click
-  - id: zarpaint.set_axis_labels
-    title: Create set_axis_labels
-    python_name: zarpaint:set_axis_labels
-  - id: zarpaint.DimsSorter
-    title: Create Dims Sorter
-    python_name: zarpaint:DimsSorter
-  - id: zarpaint.create_labels
-    title: Create create_labels
-    python_name: zarpaint:create_labels
-  - id: zarpaint.watershed_split
-    title: Create watershed_split
-    python_name: zarpaint:watershed_split
-  - id: zarpaint.add_points_3d_with_alt_click
-    title: Create add_points_3d_with_alt_click
-    python_name: zarpaint:add_points_3d_with_alt_click
-  - id: zarpaint.set_axis_labels
-    title: Create set_axis_labels
-    python_name: zarpaint:set_axis_labels
-  - id: zarpaint.DimsSorter
-    title: Create Dims Sorter
-    python_name: zarpaint:DimsSorter
-  - id: zarpaint.create_labels
-    title: Create create_labels
-    python_name: zarpaint:create_labels
-  - id: zarpaint.watershed_split
-    title: Create watershed_split
-    python_name: zarpaint:watershed_split
   - id: zarpaint.get_reader
     title: Get Reader
     python_name: zarpaint.reader:zarr_tensorstore
+    
   readers:
   - command: zarpaint.get_reader
     filename_patterns: ["*.zarr"]
     accepts_directories: true
+  
   widgets:
   - command: zarpaint.add_points_3d_with_alt_click
-    display_name: add_points_3d_with_alt_click
+    display_name: Add points 3D with ALT+Click
   - command: zarpaint.set_axis_labels
-    display_name: set_axis_labels
+    display_name: Set axis labels
   - command: zarpaint.DimsSorter
-    display_name: Dims Sorter
+    display_name: Dims sorter
   - command: zarpaint.create_labels
-    display_name: create_labels
+    display_name: Create labels
   - command: zarpaint.watershed_split
-    display_name: watershed_split
-  - command: zarpaint.add_points_3d_with_alt_click
-    display_name: add_points_3d_with_alt_click
-  - command: zarpaint.set_axis_labels
-    display_name: set_axis_labels
-  - command: zarpaint.DimsSorter
-    display_name: Dims Sorter
-  - command: zarpaint.create_labels
-    display_name: create_labels
-  - command: zarpaint.watershed_split
-    display_name: watershed_split
-  - command: zarpaint.add_points_3d_with_alt_click
-    display_name: add_points_3d_with_alt_click
-  - command: zarpaint.set_axis_labels
-    display_name: set_axis_labels
-  - command: zarpaint.DimsSorter
-    display_name: Dims Sorter
-  - command: zarpaint.create_labels
-    display_name: create_labels
-  - command: zarpaint.watershed_split
-    display_name: watershed_split
-  - command: zarpaint.add_points_3d_with_alt_click
-    display_name: add_points_3d_with_alt_click
-  - command: zarpaint.set_axis_labels
-    display_name: set_axis_labels
-  - command: zarpaint.DimsSorter
-    display_name: Dims Sorter
-  - command: zarpaint.create_labels
-    display_name: create_labels
-  - command: zarpaint.watershed_split
-    display_name: watershed_split
-  - command: zarpaint.add_points_3d_with_alt_click
-    display_name: add_points_3d_with_alt_click
-  - command: zarpaint.set_axis_labels
-    display_name: set_axis_labels
-  - command: zarpaint.DimsSorter
-    display_name: Dims Sorter
-  - command: zarpaint.create_labels
-    display_name: create_labels
-  - command: zarpaint.watershed_split
-    display_name: watershed_split
+    display_name: Watershed split
