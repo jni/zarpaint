@@ -3,23 +3,20 @@ schema_version: 0.1.0
 contributions:
   commands:
   - id: zarpaint.add_points_3d_with_alt_click
-    title: Create add_points_3d_with_alt_click
+    title: Add points with alt-click in 3D
     python_name: zarpaint:add_points_3d_with_alt_click
   - id: zarpaint.set_axis_labels
-    title: Create set_axis_labels
+    title: Set axis labels
     python_name: zarpaint:set_axis_labels
   - id: zarpaint.DimsSorter
-    title: Create Dims Sorter
+    title: Sort dims
     python_name: zarpaint:DimsSorter
   - id: zarpaint.create_labels
-    title: Create create_labels
+    title: Create labels
     python_name: zarpaint:create_labels
   - id: zarpaint.watershed_split
     title: Create watershed_split
     python_name: zarpaint:watershed_split
-  - id: zarpaint.get_reader
-    title: Get Reader
-    python_name: zarpaint.reader:zarr_tensorstore
     
   readers:
   - command: zarpaint.get_reader
@@ -28,12 +25,12 @@ contributions:
   
   widgets:
   - command: zarpaint.add_points_3d_with_alt_click
-    display_name: Add points 3D with ALT+Click
+    display_name: Add points with alt-click in 3D
   - command: zarpaint.set_axis_labels
     display_name: Set axis labels
   - command: zarpaint.DimsSorter
-    display_name: Dims sorter
+    display_name: Sort dims
   - command: zarpaint.create_labels
     display_name: Create labels
   - command: zarpaint.watershed_split
-    display_name: Watershed split
+    display_name: Split with watershed
