@@ -6,6 +6,7 @@ except ImportError:
 from ._zarpaint import create_labels, open_tensorstore
 from ._dims_chooser import DimsSorter, set_axis_labels
 from ._watershed import watershed_split
+from ._add_3d_points import add_points_3d_with_alt_click
 
 __all__ = [
         'create_labels',
@@ -13,4 +14,5 @@ __all__ = [
         'DimsSorter',
         'set_axis_labels',
         'watershed_split',
+        'add_points_3d_with_alt_click',
         ]

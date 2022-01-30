@@ -1,11 +1,1 @@
-magicgui
-napari>=0.4.11.dev80
-napari-plugin-engine>=0.1.4
-numpy
-pyyaml
-qtpy
-scipy
-scikit-image
-tensorstore
-toolz
-zarr
+-e .
