@@ -17,6 +17,9 @@ contributions:
   - id: zarpaint.watershed_split
     title: Split With Watershed…
     python_name: zarpaint:watershed_split
+  - id: zarpaint.get_reader
+    title: Get Reader
+    python_name: zarpaint:zarr_tensorstore
     
   readers:
   - command: zarpaint.get_reader
