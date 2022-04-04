@@ -1,4 +1,3 @@
-import zarpaint
 from zarpaint._add_3d_points import get_ray_coordinates, get_data_ray, find_midpoint_of_first_segment, add_points_3d_with_alt_click
 import numpy as np
 from napari.layers import Labels
