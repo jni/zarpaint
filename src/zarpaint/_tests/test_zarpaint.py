@@ -1,7 +1,9 @@
-from zarpaint._add_3d_points import get_ray_coordinates, get_data_ray, find_midpoint_of_first_segment
+import zarpaint
+from zarpaint._add_3d_points import get_ray_coordinates, get_data_ray, find_midpoint_of_first_segment, add_points_3d_with_alt_click
 import numpy as np
 from napari.layers import Labels
 
+from vispy.util.keys import ALT
 class MockMouseEvent():
 
     def __init__(self, position, view_direction) -> None:
@@ -115,4 +117,26 @@ def test_midpoint_3d_nonempty_ray(make_napari_viewer):
 
     mouse_event = MockMouseEvent((2, 2, 0), [0, 1, 1])
     result = find_midpoint_of_first_segment(layer_data, mouse_event)
-    np.testing.assert_allclose(result, [2. , 3.5, 1.5])    
+    np.testing.assert_allclose(result, [2. , 3.5, 1.5])
+
+def test_add_point_3d_alt_click(make_napari_viewer):
+    viewer = make_napari_viewer()
+    viewer.dims.ndisplay = 3
+
+    mock_data = np.zeros(shape=(5, 5, 5), dtype="uint8")
+    mock_data[1:4, 1:4, 1:4] = 1
+    label_layer = Labels(mock_data)    
+    viewer.add_layer(label_layer)
+    
+    points_layer = viewer.add_points([], ndim=3)
+    viewer.layers.selection.active = label_layer
+    
+    point_widget = add_points_3d_with_alt_click()
+    point_widget(label_layer, points_layer)
+
+    view = viewer.window._qt_viewer
+    click_coordinates = (view.canvas.size[0]/2,view.canvas.size[1]/2,0)
+    view.canvas.events.mouse_press(pos=click_coordinates, modifiers=(ALT,), button=0)
+    
+    assert len(points_layer.data)
+    
