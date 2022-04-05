@@ -4,8 +4,8 @@ from magicgui import magic_factory
 @magic_factory
 def copy_data(
         napari_viewer: 'napari.viewer.Viewer',
-        source_layer: 'napari.layers.Layer',
-        target_layer: 'napari.layers.Layer',
+        source_layer: 'napari.layers.Labels',
+        target_layer: 'napari.layers.Labels',
         ):
     src_data = source_layer.data
     dst_data = target_layer.data
