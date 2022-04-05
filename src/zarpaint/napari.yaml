@@ -20,6 +20,9 @@ contributions:
   - id: zarpaint.get_reader
     title: Get Reader
     python_name: zarpaint:zarr_tensorstore
+  - id: zarpaint.copy_data
+    title: Copy Data…
+    python_name: zarpaint:copy_data
     
   readers:
   - command: zarpaint.get_reader
@@ -37,3 +40,5 @@ contributions:
     display_name: Create Labels Layer
   - command: zarpaint.watershed_split
     display_name: Split With Watershed
+  - command: zarpaint.copy_data
+    display_name: Copy Data
