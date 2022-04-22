@@ -4,6 +4,7 @@ from magicgui import magic_factory
 from skimage.morphology import octahedron
 from skimage.segmentation import watershed
 from ._points_util import slice_points
+from skimage import util
 
 
 @magic_factory(
@@ -36,6 +37,7 @@ def watershed_split(
     """
     coord = viewer.dims.current_step
     slice_idx = coord[:-ndim]
+
     # find the labels corresponding to the current points in the points layer
     labels_sliced = np.asarray(labels.data[slice_idx])
     points_sliced = slice_points(points, viewer.dims, ndim)
@@ -63,27 +65,25 @@ def _watershed_split(
     """
     Split labels with using points as markers for watershed
     """
-    connectivity = octahedron(connectivity_octahedron)
     points = np.round(points).astype(int)
     coords = tuple([points[:, i] for i in range(points.shape[1])])
     p_lab = labels[coords]
     p_lab = np.unique(p_lab)
     p_lab = p_lab[p_lab != 0]
+
     # generate a mask corresponding to the labels that need to be split
     mask = np.zeros(labels.shape, dtype=bool)
     for lab in p_lab:
         where = labels == lab
         mask = mask + where
-    # split the labels using the points (in the masked image)
-    markers_bool = np.zeros(labels.shape, dtype=bool)
-    markers_bool[coords] = True
-    markers, _ = ndi.label(markers_bool, output=labels.dtype)
-    new_labels = watershed(
-            image,
-            markers=markers,
-            mask=mask,
-            compactness=compactness,
-            connectivity=connectivity,
-            )
-    labels[mask] = new_labels[mask] + labels.max()
+
+    dt = ndi.distance_transform_edt(labels)
+    dt_inv = np.max(dt) - dt
+    watershed_seeds = util.label_points(points, labels.shape)
+
+    # the distance transform contains ridges at the touch points
+    separated_labels = watershed(
+        dt_inv, markers=watershed_seeds, mask=mask.astype(bool)
+        )
+    labels[mask] = separated_labels[mask] + labels.max()
     return labels
