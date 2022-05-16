@@ -1,5 +1,7 @@
+import napari
 import numpy as np
 from zarpaint import watershed_split
+from skimage.data import binary_blobs
 
 def test_watershed_split_2d(make_napari_viewer):
     data = np.zeros(shape=(18,18), dtype="uint8")
@@ -58,3 +60,31 @@ def test_watershed_split_3d(make_napari_viewer):
 
     assert np.all(data[:5,:5,:5] == 2)
     assert np.all(data[5:,5:,5:] == 3)
+    
+
+
+
+def test_watershed_split_3d_with_blobs(make_napari_viewer):
+    from scipy import ndimage as ndi
+    blobs = binary_blobs(
+                length=128, blob_size_fraction=0.1, n_dim=3, volume_fraction=0.1, seed = 0
+            )
+    labeled_blobs = ndi.label(blobs)[0]
+    viewer = make_napari_viewer()
+    viewer.add_labels(labeled_blobs)
+
+    points = np.asarray([[27 ,  6 , 57],
+                        [25 ,  5, 72]])
+    
+    viewer.add_points(points)
+
+    assert labeled_blobs[27,  6, 57] == 84
+    assert labeled_blobs[25,  5, 72] == 84
+
+    watershed_widget = watershed_split()
+    watershed_widget(viewer, viewer.layers[0], viewer.layers[1])
+
+    assert labeled_blobs[27,  6, 57] == 349
+    assert labeled_blobs[25,  5, 72] == 350
+
+
