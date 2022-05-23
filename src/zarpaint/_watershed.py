@@ -83,7 +83,7 @@ def _watershed_split(
 
     # the distance transform contains ridges at the touch points
     separated_labels = watershed(
-        dt_inv, markers=watershed_seeds, mask=mask.astype(bool)
-        )
+            dt_inv, markers=watershed_seeds, mask=mask.astype(bool)
+            )
     labels[mask] = separated_labels[mask] + labels.max()
     return labels
