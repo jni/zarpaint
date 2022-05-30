@@ -9,7 +9,6 @@ def test_watershed_split_2d(make_napari_viewer):
     # create 2 squares with one corner overlapping
     data[1:10, 1:10] = 1
     data[8:17, 8:17] = 1
-    print(data)
 
     # palce points in the centre of the 2 squares
     points = np.asarray([[5, 5], [12, 12]])
