@@ -24,10 +24,10 @@ def point_and_values(image_1, image_2, interp_dim=0):
     return points, values
 
 
-def xi_coords(shape, percent=0.5):
+def xi_coords(shape, percent=0.5, interp_dim=0):
     slices = [slice(0, i) for i in shape]
-    xi = np.moveaxis(np.mgrid[slices], 0, -1).reshape(np.prod(shape), len(shape))
-    xi = xi = np.c_[np.full((np.prod(shape)), percent), xi]
+    xi = np.moveaxis(np.mgrid[slices], 0, -1).reshape(np.prod(shape), len(shape)).astype('float')
+    xi = np.insert(xi, interp_dim, percent, axis=1)
     return xi
 
 
@@ -44,7 +44,7 @@ def interpolated_slice(percent, points, values, interp_dim=0, method='linear'):
     img_shape = list(values.shape)
     del img_shape[interp_dim]
     # Calculate the interpolated slice
-    xi = xi_coords(img_shape, percent=percent)
+    xi = xi_coords(img_shape, percent=percent, interp_dim=interp_dim)
     interpolated_img = interpn(points, values, xi, method=method)
     interpolated_img = np.reshape(interpolated_img, img_shape) > 0
     return interpolated_img
@@ -71,7 +71,10 @@ def interpolate_between_slices(label_layer: "napari.layers.Labels", slice_index_
     #TODO: Thread this?   
     for slice_number, percentage in slice_iterator(slice_index_1, slice_index_2):
         interpolated_img = interpolated_slice(percentage, points, values, interp_dim=interp_dim, method='linear')
-        label_layer.data[slice_number, interpolated_img] = label_id
+        indices = [slice(None) for _ in range(label_layer.data.ndim)]
+        indices[interp_dim] = slice_number
+        indices = tuple(indices)
+        label_layer.data[indices][interpolated_img] = label_id
     label_layer.refresh()  # will update the current view
 
 # interpolate_between_slices(label_layer, image_1, image_2, slice_index_1, slice_index_2)
