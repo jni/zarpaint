@@ -26,6 +26,9 @@ contributions:
   - id: zarpaint.interpolate_labels
     title: Interpolate Labels…
     python_name: zarpaint:interpolate_between_slices
+  - id: zarpaint.interpolate_widg
+    title: Interpolate
+    python_name: zarpaint._interpolate_labels:InterpolateSliceWidget
     
   readers:
   - command: zarpaint.get_reader
@@ -47,3 +50,5 @@ contributions:
     display_name: Copy Data
   - command: zarpaint.interpolate_labels
     display_name: Interpolate Labels
+  - command: zarpaint.interpolate_widg
+    display_name: Interpolate Slices
