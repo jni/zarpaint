@@ -1,5 +1,4 @@
 from magicgui import magic_factory
-import numpy as np
 
 
 @magic_factory
@@ -15,5 +14,4 @@ def copy_data(
     ndim_dst = dst_data.ndim
     slice_ = napari_viewer.dims.current_step
     slicing = slice_[:ndim_dst - ndim_src]
-    dst_data[slicing] = np.uint32(src_data)
     target_layer.refresh()
