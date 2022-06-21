@@ -15,3 +15,4 @@ def copy_data(
     slice_ = napari_viewer.dims.current_step
     slicing = slice_[:ndim_dst - ndim_src]
     dst_data[slicing] = src_data
+    target_layer.refresh()
