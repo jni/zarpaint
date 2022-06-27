@@ -26,7 +26,8 @@ def point_and_values(image_1, image_2, interp_dim=0):
 
 def xi_coords(shape, percent=0.5, interp_dim=0):
     slices = [slice(0, i) for i in shape]
-    xi = np.moveaxis(np.mgrid[slices], 0, -1).reshape(np.prod(shape), len(shape)).astype('float')
+    xi = np.moveaxis(np.mgrid[slices], 0,
+                     -1).reshape(np.prod(shape), len(shape)).astype('float')
     xi = np.insert(xi, interp_dim, percent, axis=1)
     return xi
 
@@ -42,31 +43,40 @@ def slice_iterator(slice_index_1, slice_index_2):
 def interpolated_slice(percent, points, values, interp_dim=0, method='linear'):
     img_shape = list(values.shape)
     del img_shape[interp_dim]
-    
+
     xi = xi_coords(img_shape, percent=percent, interp_dim=interp_dim)
     interpolated_img = interpn(points, values, xi, method=method)
     interpolated_img = np.reshape(interpolated_img, img_shape) > 0
     return interpolated_img
 
-class InterpolateSliceWidget(Container):
 
+class InterpolateSliceWidget(Container):
     def __init__(self, viewer: "napari.viewer.Viewer"):
         super().__init__()
         self.viewer = viewer
-        self.labels_combo = ComboBox(name='Labels Layer', choices=self.get_labels_layers)
+        self.labels_combo = ComboBox(
+                name='Labels Layer', choices=self.get_labels_layers
+                )
         self.start_interpolation = PushButton(name='Start Interpolation')
         self.interpolate_btn = PushButton(name='Interpolate')
         self.start_interpolation.clicked.connect(self.enter_interpolation)
-        self.extend([self.labels_combo, self.start_interpolation, self.interpolate_btn])
+        self.extend([
+                self.labels_combo, self.start_interpolation,
+                self.interpolate_btn
+                ])
         self.interpolate_btn.hide()
 
     def get_labels_layers(self, combo):
-        return [layer for layer in self.viewer.layers if isinstance(layer, napari.layers.Labels)]
+        return [
+                layer for layer in self.viewer.layers
+                if isinstance(layer, napari.layers.Labels)
+                ]
 
     def enter_interpolation(self, event):
         # TODO: we wanna connect some callbacks that track for us the painted labels
         # grey out the combo box
-        self.selected_layer = self.viewer.layers[self.labels_combo.current_choice]
+        self.selected_layer = self.viewer.layers[
+                self.labels_combo.current_choice]
         self.start_interpolation.hide()
         self.interpolate_btn.show()
 
@@ -77,21 +87,25 @@ class InterpolateSliceWidget(Container):
     # TODO: for multiple slices nut we need more logic to determine which slices actualy got pained on
     # not currently used
     def remember_slices(self, event):
-        self.painted_slices.append(event.value) 
-
-
+        self.painted_slices.append(event.value)
 
     def interpolate(self, event):
         # TODO: accessing private attribute, need paint event to not do that
-        last_two_labels = [self.selected_layer._undo_history[-1], self.selected_layer._undo_history[-2]]
+        last_two_labels = [
+                self.selected_layer._undo_history[-1],
+                self.selected_layer._undo_history[-2]
+                ]
 
-        last_label_history_item = last_two_labels[0] # this is a list of tuples
-        last_label_coords = last_label_history_item[0][0] # first history atom is a tuple, first element of atom is coords
+        last_label_history_item = last_two_labels[0
+                                                  ]  # this is a list of tuples
+        last_label_coords = last_label_history_item[0][
+                0
+                ]  # first history atom is a tuple, first element of atom is coords
         # here we can determine both the slice index that was painted *and* the interp dim
         # it wil be the array in last_label_coords that has only one unique element in it
         # the interp dim will be the index of that array in the tuple
         unique_coords = list(map(np.unique, last_label_coords))
-        
+
         # TODO: make this a func
         interp_dim = 0
         for i in range(len(unique_coords)):
@@ -107,14 +121,22 @@ class InterpolateSliceWidget(Container):
 
         label_id = last_label_history_item[-1][-1]
 
-        interpolate_between_slices(self.selected_layer, second_last_slice_painted, last_slice_painted, label_id,interp_dim)
+        interpolate_between_slices(
+                self.selected_layer, second_last_slice_painted,
+                last_slice_painted, label_id, interp_dim
+                )
 
         # TODO: multiple slices, multiple labels, stitching history items so we don't have to pass in the whole layer
         # TODO: switch the button back out
 
 
-
-def interpolate_between_slices(label_layer: "napari.layers.Labels", slice_index_1: int, slice_index_2: int, label_id: int =1, interp_dim: int =0):
+def interpolate_between_slices(
+        label_layer: "napari.layers.Labels",
+        slice_index_1: int,
+        slice_index_2: int,
+        label_id: int = 1,
+        interp_dim: int = 0
+        ):
 
     if slice_index_1 > slice_index_2:
         slice_index_1, slice_index_2 = slice_index_2, slice_index_1
@@ -126,12 +148,21 @@ def interpolate_between_slices(label_layer: "napari.layers.Labels", slice_index_
     slice_2 = slice_2.astype(bool)
 
     points, values = point_and_values(slice_1, slice_2, interp_dim)
-   
-    # TODO: Thread this 
-    for slice_number, percentage in slice_iterator(slice_index_1, slice_index_2):
-        interpolated_img = interpolated_slice(percentage, points, values, interp_dim=interp_dim, method='linear')
+
+    # TODO: Thread this
+    for slice_number, percentage in slice_iterator(slice_index_1,
+                                                   slice_index_2):
+        interpolated_img = interpolated_slice(
+                percentage,
+                points,
+                values,
+                interp_dim=interp_dim,
+                method='linear'
+                )
         indices = [slice(None) for _ in range(label_layer.data.ndim)]
         indices[interp_dim] = slice_number
         indices = tuple(indices)
-        label_layer.data[indices][interpolated_img] = label_id #use labels data_setitem (from the paint event PR)
+        label_layer.data[indices][
+                interpolated_img
+                ] = label_id  #use labels data_setitem (from the paint event PR)
     label_layer.refresh()  # will update the current view
