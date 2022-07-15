@@ -16,8 +16,7 @@ import toolz as tz
 
 
 @tz.curry
-def _set_default_labels_path(widget, source_image_event):
-    source_image = source_image_event.value
+def _set_default_labels_path(widget, source_image):
     if (hasattr(source_image, 'source')  # napari <0.4.8
                 and source_image.source.path is not None):
         source_path = pathlib.Path(source_image.source.path)
