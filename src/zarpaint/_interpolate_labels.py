@@ -65,6 +65,7 @@ class InterpolateSliceWidget(Container):
                 self.interpolate_btn
                 ])
         self.interpolate_btn.hide()
+        self.painted_slice_history = []
 
     def get_labels_layers(self, combo):
         return [
@@ -72,41 +73,28 @@ class InterpolateSliceWidget(Container):
                 if isinstance(layer, napari.layers.Labels)
                 ]
 
-    def enter_interpolation(self, event):
-        # TODO: we wanna connect some callbacks that track for us the painted labels
-        # grey out the combo box
-        self.selected_layer = self.viewer.layers[
-                self.labels_combo.current_choice]
-        self.start_interpolation.hide()
-        self.interpolate_btn.show()
+    def paint_callback(self, event):
+        last_label_history_item = event.value
+        real_item = []
+        # filter empty history atoms from item
+        for atom in last_label_history_item:
+            all_coords = list(atom[0])
+            if any([len(arr) for arr in all_coords]):
+                real_item.append(atom)
+        if not real_item:
+            return
 
-        self.interpolate_btn.clicked.connect(self.interpolate)
-        self.viewer.dims.events.current_step.connect(self.remember_slices)
-        self.painted_slices = []
-
-    # TODO: for multiple slices nut we need more logic to determine which slices actualy got pained on
-    # not currently used
-    def remember_slices(self, event):
-        self.painted_slices.append(event.value)
-
-    def interpolate(self, event):
-        # TODO: accessing private attribute, need paint event to not do that
-        last_two_labels = [
-                self.selected_layer._undo_history[-1],
-                self.selected_layer._undo_history[-2]
-                ]
-
-        last_label_history_item = last_two_labels[0
-                                                  ]  # this is a list of tuples
+        last_label_history_item = real_item
         last_label_coords = last_label_history_item[0][
                 0
                 ]  # first history atom is a tuple, first element of atom is coords
         # here we can determine both the slice index that was painted *and* the interp dim
         # it wil be the array in last_label_coords that has only one unique element in it
         # the interp dim will be the index of that array in the tuple
+        if not last_label_coords:
+            return
         unique_coords = list(map(np.unique, last_label_coords))
 
-        # TODO: make this a func
         interp_dim = 0
         for i in range(len(unique_coords)):
             if len(unique_coords[i]) == 1:
@@ -114,20 +102,44 @@ class InterpolateSliceWidget(Container):
                 break
         last_slice_painted = unique_coords[interp_dim][0]
 
-        second_last_label_history_item = last_two_labels[1]
-        second_last_label_coords = second_last_label_history_item[0][0]
-        # TODO: use interp_dim/last slice func and raise if you get a different interp dim
-        second_last_slice_painted = second_last_label_coords[0][0]
-
         label_id = last_label_history_item[-1][-1]
+
+        history_item = (last_slice_painted, label_id, interp_dim)
+        if not self.painted_slice_history or history_item != self.painted_slice_history[
+                -1]:
+            self.painted_slice_history.append(history_item)
+        #TODO: if the last two items only differ on interp_dim we should error
+
+    def enter_interpolation(self, event):
+        # TODO: we wanna connect some callbacks that track for us the painted labels
+        # grey out the combo box
+        self.selected_layer = self.viewer.layers[
+                self.labels_combo.current_choice]
+
+        self.selected_layer.events.paint.connect(self.paint_callback)
+
+        self.start_interpolation.hide()
+        self.interpolate_btn.show()
+
+        self.interpolate_btn.clicked.connect(self.interpolate)
+
+    def interpolate(self, event):
+        #TODO: here we're assuming only one label ID was painted on two slices and nothing else. We should expand to go through all
+        # label IDs and slices
+        if len(self.painted_slice_history) >= 2:
+            last_slice_painted, label_id, interp_dim = self.painted_slice_history[
+                    -1]
+            second_last_slice_painted, label_id, interp_dim = self.painted_slice_history[
+                    -2]
 
         interpolate_between_slices(
                 self.selected_layer, second_last_slice_painted,
                 last_slice_painted, label_id, interp_dim
                 )
 
+        self.selected_layer.events.paint.disconnect(self.paint_callback)
+        self.painted_slice_history = []
         # TODO: multiple slices, multiple labels, stitching history items so we don't have to pass in the whole layer
-        # TODO: switch the button back out
 
 
 def interpolate_between_slices(
