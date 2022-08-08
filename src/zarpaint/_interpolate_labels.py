@@ -59,11 +59,11 @@ class InterpolateSliceWidget(Container):
         self.labels_combo = ComboBox(
                 name='Labels Layer', choices=self.get_labels_layers
                 )
-        self.start_interpolation = PushButton(name='Start Interpolation')
+        self.start_interpolation_btn = PushButton(name='Start Interpolation')
         self.interpolate_btn = PushButton(name='Interpolate')
-        self.start_interpolation.clicked.connect(self.enter_interpolation)
+        self.start_interpolation_btn.clicked.connect(self.enter_interpolation)
         self.extend([
-                self.labels_combo, self.start_interpolation,
+                self.labels_combo, self.start_interpolation_btn,
                 self.interpolate_btn
                 ])
         self.interpolate_btn.hide()
@@ -129,7 +129,7 @@ class InterpolateSliceWidget(Container):
 
         self.selected_layer.events.paint.connect(self.paint_callback)
 
-        self.start_interpolation.hide()
+        self.start_interpolation_btn.hide()
         self.interpolate_btn.show()
 
         self.interpolate_btn.clicked.connect(self.interpolate)
@@ -147,10 +147,16 @@ class InterpolateSliceWidget(Container):
                             slices_painted[i], label_id, self.interp_dim
                             )
 
+        self.reset()
+
+    def reset(self):
         self.selected_layer.events.paint.disconnect(self.paint_callback)
         self.painted_slice_history.clear()
         self.interp_dim = None
-        # TODO: multiple slices, multiple labels, stitching history items so we don't have to pass in the whole layer
+        self.interpolate_btn.clicked.disconnect(self.interpolate)
+
+        self.interpolate_btn.hide()
+        self.start_interpolation_btn.show()
 
 
 def interpolate_between_slices(
