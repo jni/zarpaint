@@ -1,3 +1,5 @@
+from collections import defaultdict
+import warnings
 from magicgui.widgets import Container, ComboBox, PushButton
 import napari
 import numpy as np
@@ -65,7 +67,8 @@ class InterpolateSliceWidget(Container):
                 self.interpolate_btn
                 ])
         self.interpolate_btn.hide()
-        self.painted_slice_history = []
+        self.painted_slice_history = defaultdict(set)
+        self.interp_dim = None
 
     def get_labels_layers(self, combo):
         return [
@@ -93,22 +96,30 @@ class InterpolateSliceWidget(Container):
         # the interp dim will be the index of that array in the tuple
         if not last_label_coords:
             return
-        unique_coords = list(map(np.unique, last_label_coords))
 
-        interp_dim = 0
+        unique_coords = list(map(np.unique, last_label_coords))
+        if self.interp_dim is None:
+            self._infer_interp_dim(unique_coords)
+
+        last_slice_painted = unique_coords[self.interp_dim][0]
+
+        label_id = last_label_history_item[-1][-1]
+
+        self.painted_slice_history[label_id].add(last_slice_painted)
+
+    def _infer_interp_dim(self, unique_coords):
+        interp_dim = None
         for i in range(len(unique_coords)):
             if len(unique_coords[i]) == 1:
                 interp_dim = i
                 break
-        last_slice_painted = unique_coords[interp_dim][0]
-
-        label_id = last_label_history_item[-1][-1]
-
-        history_item = (last_slice_painted, label_id, interp_dim)
-        if not self.painted_slice_history or history_item != self.painted_slice_history[
-                -1]:
-            self.painted_slice_history.append(history_item)
-        #TODO: if the last two items only differ on interp_dim we should error
+        if interp_dim == None:
+            warnings.warn(
+                    "Couldn't determine axis for interpolation. Using axis 0 by default."
+                    )
+            self.interp_dim = 0
+        else:
+            self.interp_dim = interp_dim
 
     def enter_interpolation(self, event):
         # TODO: we wanna connect some callbacks that track for us the painted labels
@@ -124,21 +135,21 @@ class InterpolateSliceWidget(Container):
         self.interpolate_btn.clicked.connect(self.interpolate)
 
     def interpolate(self, event):
-        #TODO: here we're assuming only one label ID was painted on two slices and nothing else. We should expand to go through all
-        # label IDs and slices
-        if len(self.painted_slice_history) >= 2:
-            last_slice_painted, label_id, interp_dim = self.painted_slice_history[
-                    -1]
-            second_last_slice_painted, label_id, interp_dim = self.painted_slice_history[
-                    -2]
 
-        interpolate_between_slices(
-                self.selected_layer, second_last_slice_painted,
-                last_slice_painted, label_id, interp_dim
-                )
+        assert self.interp_dim is not None, 'Cannot interpolate without knowing dimension'
+
+        for label_id, slices_painted in self.painted_slice_history.items():
+            slices_painted = list(sorted(slices_painted))
+            if len(slices_painted) > 1:
+                for i in range(1, len(slices_painted)):
+                    interpolate_between_slices(
+                            self.selected_layer, slices_painted[i - 1],
+                            slices_painted[i], label_id, self.interp_dim
+                            )
 
         self.selected_layer.events.paint.disconnect(self.paint_callback)
-        self.painted_slice_history = []
+        self.painted_slice_history.clear()
+        self.interp_dim = None
         # TODO: multiple slices, multiple labels, stitching history items so we don't have to pass in the whole layer
 
 
@@ -156,12 +167,11 @@ def interpolate_between_slices(
     slice_1 = np.take(layer_data, slice_index_1, axis=interp_dim)
     slice_2 = np.take(layer_data, slice_index_2, axis=interp_dim)
 
-    slice_1 = slice_1.astype(bool)
-    slice_2 = slice_2.astype(bool)
+    slice_1 = np.where(slice_1 == label_id, 1, 0)
+    slice_2 = np.where(slice_2 == label_id, 1, 0)
 
     points, values = point_and_values(slice_1, slice_2, interp_dim)
 
-    # TODO: Thread this
     for slice_number, percentage in slice_iterator(slice_index_1,
                                                    slice_index_2):
         interpolated_img = interpolated_slice(
