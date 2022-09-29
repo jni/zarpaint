@@ -23,6 +23,10 @@ contributions:
   - id: zarpaint.copy_data
     title: Copy Data…
     python_name: zarpaint:copy_data
+  - id: zarpaint.some_func
+    title: A func
+    python_name: zarpaint._widget:some_func
+
     
   readers:
   - command: zarpaint.get_reader
@@ -30,6 +34,8 @@ contributions:
     accepts_directories: true
   
   widgets:
+  - command: zarpaint.some_func
+    display_name: Prince Widget
   - command: zarpaint.add_points_3d_with_alt_click
     display_name: Add Points With Alt-Click in 3D
   - command: zarpaint.set_axis_labels
