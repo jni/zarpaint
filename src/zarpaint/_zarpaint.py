@@ -147,14 +147,14 @@ class LabelCorrector:
         """
         Correct labels to create a ground truth with five opperations,
         each of which correspond to the following number key.
-            (1) toggel selection of points - to seed watershed to split
+            (1) toggle selection of points - to seed watershed to split
                 labels.
             (2) watershed - recompute watershed for joined labels based on
                 chosen points.
             (3) toggle pick label colour - choose the colour of the label
                 with which to paint.
             (4) toggle label fill mode - for merging labels
-            (5) toggel paint mode - paint new label.
+            (5) toggle paint mode - paint new label.
 
         Output can be saved to a new file by using Control-s. Note that this is
         not necessary if using tensorstore, as annotations will be written to
