@@ -1,36 +1,36 @@
 import numpy as np
 
 _np_uints = {
-    8: np.uint8,
-    16: np.uint16,
-    32: np.uint32,
-    64: np.uint64,
-}
+        8: np.uint8,
+        16: np.uint16,
+        32: np.uint32,
+        64: np.uint64,
+        }
 
 _np_ints = {
-    8: np.int8,
-    16: np.int16,
-    32: np.int32,
-    64: np.int64,
-}
+        8: np.int8,
+        16: np.int16,
+        32: np.int32,
+        64: np.int64,
+        }
 
 _np_floats = {
-    16: np.float16,
-    32: np.float32,
-    64: np.float64,
-}
+        16: np.float16,
+        32: np.float32,
+        64: np.float64,
+        }
 
 _np_complex = {
-    64: np.complex64,
-    128: np.complex128,
-}
+        64: np.complex64,
+        128: np.complex128,
+        }
 
 _np_kinds = {
-    'uint': _np_uints,
-    'int': _np_ints,
-    'float': _np_floats,
-    'complex': _np_complex,
-}
+        'uint': _np_uints,
+        'int': _np_ints,
+        'float': _np_floats,
+        'complex': _np_complex,
+        }
 
 
 def _normalize_str_by_bit_depth(dtype_str, kind):

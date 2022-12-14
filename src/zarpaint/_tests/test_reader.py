@@ -19,13 +19,13 @@ def test_reader_return_callable(tmp_path):
     """
     example_zarr_folder = tmp_path / 'example.zarr'
     z1 = zarr.open_array(
-        example_zarr_folder,
-        mode='w',
-        shape=(10000, 10000),
-        chunks=(1000, 1000),
-        dtype='i4',
-        fill_value=0
-    )
+            example_zarr_folder,
+            mode='w',
+            shape=(10000, 10000),
+            chunks=(1000, 1000),
+            dtype='i4',
+            fill_value=0
+            )
     res = zarr_tensorstore(example_zarr_folder)
     assert callable(res)
 
@@ -37,8 +37,8 @@ def test_reader_can_read_and_write_to_file(tmp_path):
     """
     example_zarr_folder = tmp_path / 'example.zarr'
     z1 = zarr.open_array(
-        example_zarr_folder, mode='w', shape=(100, 100), chunks=(100, 100)
-    )
+            example_zarr_folder, mode='w', shape=(100, 100), chunks=(100, 100)
+            )
     z1[:] = np.random.rand(100, 100)
 
     reader_func = zarr_tensorstore(example_zarr_folder)

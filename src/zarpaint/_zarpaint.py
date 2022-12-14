@@ -17,7 +17,7 @@ import toolz as tz
 @tz.curry
 def _set_default_labels_path(widget, source_image):
     if (hasattr(source_image, 'source')  # napari <0.4.8
-            and source_image.source.path is not None):
+                and source_image.source.path is not None):
         source_path = pathlib.Path(source_image.source.path)
         if source_path.suffix != '.zarr':
             labels_path = source_path.with_suffix('.zarr')
@@ -56,43 +56,43 @@ def open_ts_meta(labels_file: pathlib.Path) -> dict:
 def open_tensorstore(labels_file: pathlib.Path, *, shape=None, chunks=None):
     if not os.path.exists(labels_file):
         zarr.open(
-            str(labels_file),
-            mode='w',
-            shape=shape,
-            dtype=np.uint32,
-            chunks=chunks,
-        )
+                str(labels_file),
+                mode='w',
+                shape=shape,
+                dtype=np.uint32,
+                chunks=chunks,
+                )
     # read some metadata for tensorstore driver from file
     labels_temp = zarr.open(str(labels_file), mode='r')
     metadata = {
-        'dtype': labels_temp.dtype.str,
-        'order': labels_temp.order,
-        'shape': labels_temp.shape,
-    }
+            'dtype': labels_temp.dtype.str,
+            'order': labels_temp.order,
+            'shape': labels_temp.shape,
+            }
 
     dir, name = os.path.split(labels_file)
     labels_ts_spec = {
-        'driver': 'zarr',
-        'kvstore': {
-            'driver': 'file',
-            'path': dir,
-        },
-        'path': name,
-        'metadata': metadata,
-    }
+            'driver': 'zarr',
+            'kvstore': {
+                    'driver': 'file',
+                    'path': dir,
+                    },
+            'path': name,
+            'metadata': metadata,
+            }
     data = ts.open(labels_ts_spec, create=False, open=True).result()
     return data
 
 
 @magic_factory(
-    labels_file={'mode': 'w'},
-    widget_init=_on_create_labels_init,
-)
+        labels_file={'mode': 'w'},
+        widget_init=_on_create_labels_init,
+        )
 def create_labels(
         source_image: napari.layers.Image,
         labels_file: pathlib.Path,
         chunks='',
-) -> napari.types.LayerDataTuple:
+        ) -> napari.types.LayerDataTuple:
     """Create/load a zarr array as a labels layer based on image layer.
 
     Parameters
@@ -111,22 +111,22 @@ def create_labels(
         chunks_str = chunks
         chunks = ast.literal_eval(chunks)
         if (type(chunks) is not tuple
-                or not all(isinstance(val, int) for val in chunks)):
+                    or not all(isinstance(val, int) for val in chunks)):
             raise ValueError(
-                'chunks should be a tuple of ints, e.g. "(1, 1, 512, 512)", '
-                f'got {chunks_str}'
-            )
+                    'chunks should be a tuple of ints, e.g. "(1, 1, 512, 512)", '
+                    f'got {chunks_str}'
+                    )
     else:  # use default
         chunks = (1,) * (source_image.ndim - 2) + (128, 128)
 
     layer_data = zarr.open(
-        labels_file, shape=source_image.data.shape, chunks=chunks
-    )
+            labels_file, shape=source_image.data.shape, chunks=chunks
+            )
     layer_type = 'labels'
     layer_metadata = {
-        'scale': source_image.scale,
-        'translate': source_image.translate,
-    }
+            'scale': source_image.scale,
+            'translate': source_image.translate,
+            }
     create_ts_meta(labels_file, layer_metadata)
     return layer_data, layer_metadata, layer_type
 
@@ -140,7 +140,7 @@ class LabelCorrector:
             scale=(1, 1, 4),
             c=2,
             t=None
-    ):
+            ):
         """
         Correct labels to create a ground truth with five opperations,
         each of which correspond to the following number key.
@@ -227,8 +227,8 @@ class LabelCorrector:
         # ---------
         if time_index is None:
             self.time_index = slice(
-                None
-            )  # ensure that the following two lines
+                    None
+                    )  # ensure that the following two lines
             # work
         # Note: we assume a 5D array saved in ome-zarr order: tczyx
         self.image = da.from_zarr(image_file)[self.time_index, c]
@@ -253,8 +253,8 @@ class LabelCorrector:
         elif self.tensorstore:
             # get the path str from spec
             labels_path = os.path.join(
-                labels_file['kvstore']['path'], labels_file['path']
-            )
+                    labels_file['kvstore']['path'], labels_file['path']
+                    )
         else:
             m = f'labels_file parameter must be dict or list not {type(labels_file)}'
             raise ValueError(m)
@@ -297,13 +297,13 @@ class LabelCorrector:
             self.viewer = napari.Viewer()
             self.viewer.add_image(self.image, name='Image', scale=self.scale)
             self.viewer.add_labels(
-                self.labels, name='Labels', scale=self.scale
-            )
+                    self.labels, name='Labels', scale=self.scale
+                    )
             self.viewer.add_points(
-                np.empty((0, len(self.labels.shape)), dtype=float),
-                scale=self.scale,
-                size=2
-            )
+                    np.empty((0, len(self.labels.shape)), dtype=float),
+                    scale=self.scale,
+                    size=2
+                    )
             self.viewer.bind_key('1', self._points)
             self.viewer.bind_key('2', self._watershed)
             self.viewer.bind_key('3', self._select_colour)
@@ -378,6 +378,7 @@ class LabelCorrector:
         zarr.save_array(self.save_path, np.array(array))
         print("Labels saved at:")
         print(self.save_path)
+
 
 # Split Objects
 # -------------
