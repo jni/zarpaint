@@ -2,43 +2,40 @@ name: zarpaint
 schema_version: 0.1.0
 contributions:
   commands:
-    - id: zarpaint.add_points_3d_with_alt_click
-      title: Add Points With Alt-Click in 3D…
-      python_name: zarpaint:add_points_3d_with_alt_click
-    - id: zarpaint.set_axis_labels
-      title: Set Axis Labels…
-      python_name: zarpaint:set_axis_labels
-    - id: zarpaint.DimsSorter
-      title: Reorder Dimensions…
-      python_name: zarpaint:DimsSorter
-    - id: zarpaint.create_labels
-      title: Create Labels Layer…
-      python_name: zarpaint:create_labels
-    - id: zarpaint.watershed_split
-      title: Split With Watershed…
-      python_name: zarpaint:watershed_split
-    - id: zarpaint.get_reader
-      title: Get Reader
-      python_name: zarpaint:zarr_tensorstore
-    - id: zarpaint.copy_data
-      title: Copy Data…
-      python_name: zarpaint:copy_data
-
+  - id: zarpaint.add_points_3d_with_alt_click
+    title: Add Points With Alt-Click in 3D…
+    python_name: zarpaint:add_points_3d_with_alt_click
+  - id: zarpaint.set_axis_labels
+    title: Set Axis Labels…
+    python_name: zarpaint:set_axis_labels
+  - id: zarpaint.DimsSorter
+    title: Reorder Dimensions…
+    python_name: zarpaint:DimsSorter
+  - id: zarpaint.create_labels
+    title: Create Labels Layer…
+    python_name: zarpaint:create_labels
+  - id: zarpaint.watershed_split
+    title: Split With Watershed…
+    python_name: zarpaint:watershed_split
+  - id: zarpaint.copy_data
+    title: Copy Data…
+    python_name: zarpaint:copy_data
+    
   readers:
-    - command: zarpaint.get_reader
-      filename_patterns: [ "*.zarr" ]
-      accepts_directories: true
+  - command: zarpaint.get_reader
+    filename_patterns: ["*.zarr"]
+    accepts_directories: true
   
   widgets:
-    - command: zarpaint.add_points_3d_with_alt_click
-      display_name: Add Points With Alt-Click in 3
-    - command: zarpaint.set_axis_labels
-      display_name: Set Axis Labels
-    - command: zarpaint.DimsSorter
-      display_name: Reorder Dims
-    - command: zarpaint.create_labels
-      display_name: Create Labels Layer
-    - command: zarpaint.watershed_split
-      display_name: Split With Watershed
-    - command: zarpaint.copy_data
-      display_name: Copy Data
+  - command: zarpaint.add_points_3d_with_alt_click
+    display_name: Add Points With Alt-Click in 3D
+  - command: zarpaint.set_axis_labels
+    display_name: Set Axis Labels
+  - command: zarpaint.DimsSorter
+    display_name: Reorder Dims
+  - command: zarpaint.create_labels
+    display_name: Create Labels Layer
+  - command: zarpaint.watershed_split
+    display_name: Split With Watershed
+  - command: zarpaint.copy_data
+    display_name: Copy Data
