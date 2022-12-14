@@ -1,9 +1,7 @@
 import argparse
 import ast
 import sys
-
 from ._zarpaint import correct_labels
-
 parser = argparse.ArgumentParser(
         'zarpaint',
         description='Paint segmentations directly to '

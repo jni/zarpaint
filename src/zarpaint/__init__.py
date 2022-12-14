@@ -17,6 +17,5 @@ __all__ = [
         'set_axis_labels',
         'watershed_split',
         'add_points_3d_with_alt_click',
-        'zarr_tensorstore'
         'copy_data',
         ]
