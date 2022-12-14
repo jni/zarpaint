@@ -32,6 +32,7 @@ _np_kinds = {
     'complex': _np_complex,
 }
 
+
 def _normalize_str_by_bit_depth(dtype_str, kind):
     if not any(str.isdigit(c) for c in dtype_str):  # Python 'int' or 'float'
         return np.dtype(kind).type
@@ -46,6 +47,7 @@ def _normalize_str_by_bit_depth(dtype_str, kind):
         return bit_dict[32]
     if '64' in dtype_str:
         return bit_dict[64]
+
 
 def normalize_dtype(dtype_spec):
     """Return a proper NumPy type given ~any duck array dtype.

@@ -120,9 +120,7 @@ def create_labels(
         chunks = (1,) * (source_image.ndim - 2) + (128, 128)
 
     layer_data = zarr.open(
-        labels_file,
-        shape=source_image.data.shape,
-        chunks=chunks
+        labels_file, shape=source_image.data.shape, chunks=chunks
     )
     layer_type = 'labels'
     layer_metadata = {
