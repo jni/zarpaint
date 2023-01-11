@@ -316,9 +316,8 @@ def interpolate_between_slices(
 
     if slice_index_1 > slice_index_2:
         slice_index_1, slice_index_2 = slice_index_2, slice_index_1
-    layer_data = np.asarray(label_layer.data)
-    slice_1 = np.take(layer_data, slice_index_1, axis=interp_dim)
-    slice_2 = np.take(layer_data, slice_index_2, axis=interp_dim)
+    slice_1 = np.take(label_layer.data, slice_index_1, axis=interp_dim)
+    slice_2 = np.take(label_layer.data, slice_index_2, axis=interp_dim)
 
     slice_1 = np.where(slice_1 == label_id, 1, 0)
     slice_2 = np.where(slice_2 == label_id, 1, 0)
