@@ -3,6 +3,7 @@ from zarpaint import _interpolate_labels
 from napari.layers import Labels
 from skimage.draw import ellipse, ellipsoid
 from zarpaint._interpolate_labels import interpolate_between_slices
+import napari
 
 
 def test_2d_slice_ellipse():
@@ -122,3 +123,28 @@ def test_3d_slice_cube():
     _interpolate_labels.interpolate_between_slices(labels, 10, 20, 2, 0)
 
     np.testing.assert_allclose(labels.data[10:20, 10:20, 10:20, 10:20], 2)
+
+
+def test_labels_layer_combo_box():
+    viewer = napari.Viewer()
+    space = (100, 100, 100, 100)
+    data = np.zeros(shape=space, dtype="uint8")
+
+    data[20, 10:20, 10:20, 10:20] = 2
+    data[10, 10:20, 10:20, 10:20] = 2
+
+    viewer.add_labels(data, name="test data")
+    viewer.add_image(data)
+    interp_widget = _interpolate_labels.InterpolateSliceWidget(viewer)
+    labels_layers_list = interp_widget.get_labels_layers(
+            interp_widget.labels_combo
+            )
+
+    assert len(labels_layers_list) == 1
+    assert labels_layers_list[0].name == "test data"
+
+    viewer.layers.remove(labels_layers_list[0])
+    labels_layers_list = interp_widget.get_labels_layers(
+            interp_widget.labels_combo
+            )
+    assert len(labels_layers_list) == 0
