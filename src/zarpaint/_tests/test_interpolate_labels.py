@@ -152,9 +152,6 @@ def test_labels_layer_combo_box(make_napari_viewer):
 
 def test_store_painted_slices(make_napari_viewer):
     viewer = make_napari_viewer()
-    space = (100, 100, 100, 100)
-    data = np.zeros(shape=space, dtype="uint8")
-    viewer.add_labels(data, name="test data")
 
     interp_widget = _interpolate_labels.InterpolateSliceWidget(viewer)
     event = MagicMock()
