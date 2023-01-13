@@ -173,7 +173,7 @@ class InterpolateSliceWidget(Container):
                 if isinstance(layer, napari.layers.Labels)
                 ]
 
-    def paint_callback(self, event):
+    def store_painted_slices(self, event):
         """Identify slices that have been painetd on
 
         Parameters
@@ -249,7 +249,7 @@ class InterpolateSliceWidget(Container):
         self.selected_layer = self.viewer.layers[
                 self.labels_combo.current_choice]
 
-        self.selected_layer.events.paint.connect(self.paint_callback)
+        self.selected_layer.events.paint.connect(self.store_painted_slices)
 
         self.start_interpolation_btn.hide()
         self.interpolate_btn.show()
@@ -281,7 +281,7 @@ class InterpolateSliceWidget(Container):
     def reset(self):
         """Reset button text and clear paint event history
         """
-        self.selected_layer.events.paint.disconnect(self.paint_callback)
+        self.selected_layer.events.paint.disconnect(self.store_painted_slices)
         self.painted_slice_history.clear()
         self.interp_dim = None
         self.interpolate_btn.clicked.disconnect(self.interpolate)
