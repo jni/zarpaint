@@ -4,7 +4,6 @@ from napari.layers import Labels
 from skimage.draw import ellipse, ellipsoid
 from zarpaint._interpolate_labels import interpolate_between_slices
 from unittest.mock import MagicMock
-import napari
 
 
 def test_2d_slice_ellipse():
@@ -151,15 +150,12 @@ def test_labels_layer_combo_box(make_napari_viewer):
     assert len(labels_layers_list) == 0
 
 
-def test_store_painted_slices():
-    viewer = napari.Viewer()
+def test_store_painted_slices(make_napari_viewer):
+    viewer = make_napari_viewer()
     space = (100, 100, 100, 100)
     data = np.zeros(shape=space, dtype="uint8")
-
-    # data[50, 50, 19:22, 9:12] = 2
-    # data[45, 45, 19:22, 9:12] = 2
-
     viewer.add_labels(data, name="test data")
+
     interp_widget = _interpolate_labels.InterpolateSliceWidget(viewer)
     event = MagicMock()
     event.value = [(([50, 50, 50, 50, 50, 50, 50, 50,
@@ -167,8 +163,6 @@ def test_store_painted_slices():
                             50], [19, 20, 21, 19, 20, 21, 19, 20,
                                   21], [9, 9, 9, 10, 10, 10, 11, 11,
                                         11]), [0, 0, 0, 0, 0, 0, 0, 0, 0], 2)]
-    painted_slices = interp_widget.store_painted_slices(event)
-
     event_2 = MagicMock()
     event_2.value = [(([45, 45, 45, 45, 45, 45, 45, 45,
                         45], [45, 45, 45, 45, 45, 45, 45, 45,
@@ -176,10 +170,16 @@ def test_store_painted_slices():
                                     21], [9, 9, 9, 10, 10, 10, 11, 11,
                                           11]), [0, 0, 0, 0, 0, 0, 0, 0,
                                                  0], 2)]
-
-    painted_slices = interp_widget.store_painted_slices(event_2)
-    print(interp_widget.painted_slice_history)
+    interp_widget.store_painted_slices(event)
+    interp_widget.store_painted_slices(event_2)
     assert interp_widget.painted_slice_history[2] == {50, 45}
 
-
-test_widget_interpolate()
+    event_3 = MagicMock()
+    event_3.value = [(([30, 30, 30, 30, 30, 30, 30, 30,
+                        30], [30, 30, 30, 30, 30, 30, 30, 30,
+                              30], [19, 20, 21, 19, 20, 21, 19, 20,
+                                    21], [9, 9, 9, 10, 10, 10, 11, 11,
+                                          11]), [0, 0, 0, 0, 0, 0, 0, 0,
+                                                 0], 5)]
+    interp_widget.store_painted_slices(event_3)
+    assert interp_widget.painted_slice_history[5] == {30}
