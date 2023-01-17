@@ -155,28 +155,40 @@ def test_store_painted_slices(make_napari_viewer):
 
     interp_widget = _interpolate_labels.InterpolateSliceWidget(viewer)
     event = MagicMock()
+
+    interp_widget.store_painted_slices(event)
+    assert len(interp_widget.painted_slice_history) == 0
+
     event.value = [(([50, 50, 50, 50, 50, 50, 50, 50,
-                      50], [50, 50, 50, 50, 50, 50, 50, 50,
-                            50], [19, 20, 21, 19, 20, 21, 19, 20,
-                                  21], [9, 9, 9, 10, 10, 10, 11, 11,
-                                        11]), [0, 0, 0, 0, 0, 0, 0, 0, 0], 2)]
+                      50], [19, 20, 21, 19, 20, 21, 19, 20,
+                            21], [9, 9, 9, 10, 10, 10, 11, 11,
+                                  11]), [0, 0, 0, 0, 0, 0, 0, 0, 0], 2)]
     event_2 = MagicMock()
     event_2.value = [(([45, 45, 45, 45, 45, 45, 45, 45,
-                        45], [45, 45, 45, 45, 45, 45, 45, 45,
-                              45], [19, 20, 21, 19, 20, 21, 19, 20,
-                                    21], [9, 9, 9, 10, 10, 10, 11, 11,
-                                          11]), [0, 0, 0, 0, 0, 0, 0, 0,
-                                                 0], 2)]
+                        45], [19, 20, 21, 19, 20, 21, 19, 20,
+                              21], [9, 9, 9, 10, 10, 10, 11, 11,
+                                    11]), [0, 0, 0, 0, 0, 0, 0, 0, 0], 2)]
     interp_widget.store_painted_slices(event)
     interp_widget.store_painted_slices(event_2)
     assert interp_widget.painted_slice_history[2] == {50, 45}
 
     event_3 = MagicMock()
     event_3.value = [(([30, 30, 30, 30, 30, 30, 30, 30,
-                        30], [30, 30, 30, 30, 30, 30, 30, 30,
-                              30], [19, 20, 21, 19, 20, 21, 19, 20,
-                                    21], [9, 9, 9, 10, 10, 10, 11, 11,
-                                          11]), [0, 0, 0, 0, 0, 0, 0, 0,
-                                                 0], 5)]
+                        30], [19, 20, 21, 19, 20, 21, 19, 20,
+                              21], [9, 9, 9, 10, 10, 10, 11, 11,
+                                    11]), [0, 0, 0, 0, 0, 0, 0, 0, 0], 5)]
     interp_widget.store_painted_slices(event_3)
     assert interp_widget.painted_slice_history[5] == {30}
+
+
+def test_distance_transform():
+    shape = (3, 3)
+    image = np.zeros(shape=shape, dtype="uint8")
+    image[1, 1] = 3
+    res = _interpolate_labels.distance_transform(image)
+
+    assert res[1, 1] == 1
+    np.testing.assert_allclose(res[0, 0], -2**0.5)
+
+
+test_distance_transform()
