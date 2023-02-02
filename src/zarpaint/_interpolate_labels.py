@@ -154,6 +154,7 @@ class InterpolateSliceWidget(Container):
         self.interpolate_btn.hide()
         self.painted_slice_history = defaultdict(set)
         self.interp_dim = None
+        self.selected_layer = None
 
     def get_labels_layers(self, combo):
         """Returns a list of existing labels to display

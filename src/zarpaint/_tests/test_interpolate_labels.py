@@ -191,4 +191,38 @@ def test_distance_transform():
     np.testing.assert_allclose(res[0, 0], -2**0.5)
 
 
-test_distance_transform()
+def test_interpolate(make_napari_viewer):
+    viewer = make_napari_viewer()
+
+    space = (10, 10, 10)
+
+    data = np.zeros(shape=space, dtype="uint8")
+
+    paint_history = [[([2, 2, 2, 2, 2, 2, 2, 2,
+                        2], [3, 4, 5, 3, 4, 5, 3, 4,
+                             5], [3, 3, 3, 4, 4, 4, 5, 5, 5]),
+                      [2, 2, 2, 2, 2, 2, 2, 2, 2], 2],
+                     [([6, 6, 6, 6, 6, 6, 6, 6, 6], [
+                             3, 4, 5, 3, 4, 5, 3, 4, 5
+                             ], [3, 3, 3, 4, 4, 4, 5, 5, 5]),
+                      [2, 2, 2, 2, 2, 2, 2, 2, 2], 2]]
+
+    data[3, 3:6, 3:6] = 2
+    data[6, 3:6, 3:6] = 2
+
+    labels = Labels(data)
+    viewer.add_layer(labels)
+    interp_widget = _interpolate_labels.InterpolateSliceWidget(viewer)
+    event = MagicMock()
+    event.value = paint_history
+
+    interp_widget.painted_slice_history[2] = [6, 3]
+    interp_widget.interp_dim = 0
+    interp_widget.selected_layer = viewer.layers[0]
+    interp_widget.interpolate(event)
+
+    print(viewer.layers[0].data)
+
+    np.testing.assert_allclose(
+            viewer.layers[0].data[3], viewer.layers[0].data[4]
+            )
