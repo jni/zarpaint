@@ -45,7 +45,11 @@ def test_2d_slice_ellipse():
 
     # Interpolate intermediate slices
     interpolate_between_slices(
-            labels_layer, slice_index_1, slice_index_2, label_id, interp_dim=0
+            labels_layer,
+            slice_index_1,
+            slice_index_2,
+            label_id,
+            interpolate_axis=0
             )
 
     # Check all intermediate label slices now contain non-zero pixels
@@ -101,7 +105,11 @@ def test_3d_slice_ellipsoid():
 
     # Interpolate intermediate slices
     interpolate_between_slices(
-            labels_layer, slice_index_1, slice_index_2, label_id, interp_dim=0
+            labels_layer,
+            slice_index_1,
+            slice_index_2,
+            label_id,
+            interpolate_axis=0
             )
 
     # Check all intermediate label slices now contain non-zero pixels

@@ -39,7 +39,7 @@ def point_and_values(image_1, image_2, interp_dim=0):
     image_2 : _type_
         The second slice to interpolate to
     interp_dim : int, optional
-        The dimention along which to interpolate, by default 0
+        The dimension along which to interpolate, by default 0
 
     Returns
     -------
@@ -148,7 +148,8 @@ class InterpolateSliceWidget(Container):
                 name='Labels Layer', choices=self.get_labels_layers
                 )
         self.interp_dim = ComboBox(
-                name="interpret Dimention", choices=self.update_dim_choices
+                name="Interpolation Dimension",
+                choices=self.update_dim_choices
                 )
 
         self.start_interpolation_btn = PushButton(name='Start Interpolation')
@@ -215,41 +216,12 @@ class InterpolateSliceWidget(Container):
             return
 
         unique_coords = list(map(np.unique, last_label_coords))
-        if self.interp_dim is None:
-            self._infer_interp_dim(unique_coords)
 
-        last_slice_painted = unique_coords[self.interp_dim][0]
+        last_slice_painted = unique_coords[self.interpolate_axis][0]
 
         label_id = last_label_history_item[-1][-1]
 
         self.painted_slice_history[label_id].add(last_slice_painted)
-
-    def _infer_interp_dim(self, unique_coords):
-        """Infer the dimension/axis on which to interpolate.
-
-        unique_coords contains a list for each dimension.
-        One of the lists will contain a single element referencing the slice
-        being painted on. This mean that that lists is the dimension being
-        painted across
-
-        Parameters
-        ----------
-        unique_coords : List
-            A list of lists, containing coordinates which have been painted
-            and the label which is being painted
-        """
-        interp_dim = None
-        for i in range(len(unique_coords)):
-            if len(unique_coords[i]) == 1:
-                interp_dim = i
-                break
-        if interp_dim == None:
-            warnings.warn(
-                    "Couldn't determine axis for interpolation. Using axis 0 by default."
-                    )
-            self.interp_dim = 0
-        else:
-            self.interp_dim = interp_dim
 
     def enter_interpolation(self, event):
         """Connect the paint callback and change button text
@@ -268,6 +240,7 @@ class InterpolateSliceWidget(Container):
         self.interpolate_btn.show()
 
         self.interpolate_btn.clicked.connect(self.interpolate)
+        self.interpolate_axis = self.interp_dim.get_value()
 
     def interpolate(self, event):
         """For each label_id, iterate over each slice that has been painted on
@@ -278,7 +251,6 @@ class InterpolateSliceWidget(Container):
         event : Event
             Object created upon clicking "interpolate" in the widget
         """
-        assert self.interp_dim is not None, 'Cannot interpolate without knowing dimension'
 
         for label_id, slices_painted in self.painted_slice_history.items():
             slices_painted = list(sorted(slices_painted))
@@ -286,7 +258,7 @@ class InterpolateSliceWidget(Container):
                 for i in range(1, len(slices_painted)):
                     interpolate_between_slices(
                             self.selected_layer, slices_painted[i - 1],
-                            slices_painted[i], label_id, self.interp_dim
+                            slices_painted[i], label_id, self.interpolate_axis
                             )
 
         self.reset()
@@ -296,7 +268,7 @@ class InterpolateSliceWidget(Container):
         """
         self.selected_layer.events.paint.disconnect(self.store_painted_slices)
         self.painted_slice_history.clear()
-        self.interp_dim = None
+        self.interpolate_axis = None
         self.interpolate_btn.clicked.disconnect(self.interpolate)
 
         self.interpolate_btn.hide()
@@ -308,7 +280,7 @@ def interpolate_between_slices(
         slice_index_1: int,
         slice_index_2: int,
         label_id: int = 1,
-        interp_dim: int = 0
+        interpolate_axis: int = 0
         ):
     """Compute and draw interpolation between 2 label annotations.
 
@@ -329,13 +301,13 @@ def interpolate_between_slices(
 
     if slice_index_1 > slice_index_2:
         slice_index_1, slice_index_2 = slice_index_2, slice_index_1
-    slice_1 = np.take(label_layer.data, slice_index_1, axis=interp_dim)
-    slice_2 = np.take(label_layer.data, slice_index_2, axis=interp_dim)
+    slice_1 = np.take(label_layer.data, slice_index_1, axis=interpolate_axis)
+    slice_2 = np.take(label_layer.data, slice_index_2, axis=interpolate_axis)
 
     slice_1 = np.where(slice_1 == label_id, 1, 0)
     slice_2 = np.where(slice_2 == label_id, 1, 0)
 
-    points, values = point_and_values(slice_1, slice_2, interp_dim)
+    points, values = point_and_values(slice_1, slice_2, interpolate_axis)
 
     for slice_number, percentage in slice_iterator(slice_index_1,
                                                    slice_index_2):
@@ -343,11 +315,11 @@ def interpolate_between_slices(
                 percentage,
                 points,
                 values,
-                interp_dim=interp_dim,
+                interp_dim=interpolate_axis,
                 method='linear'
                 )
         indices = [slice(None) for _ in range(label_layer.data.ndim)]
-        indices[interp_dim] = slice_number
+        indices[interpolate_axis] = slice_number
         indices = tuple(indices)
         label_layer.data[indices][interpolated_img] = label_id
     label_layer.refresh()
