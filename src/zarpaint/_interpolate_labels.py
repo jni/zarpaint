@@ -140,21 +140,33 @@ class InterpolateSliceWidget(Container):
             napari viewer to add the widget to
         """
         super().__init__()
+
         self.viewer = viewer
+        self.painted_slice_history = defaultdict(set)
+
         self.labels_combo = ComboBox(
                 name='Labels Layer', choices=self.get_labels_layers
                 )
+        self.interp_dim = ComboBox(
+                name="interpret Dimention", choices=self.update_dim_choices
+                )
+
         self.start_interpolation_btn = PushButton(name='Start Interpolation')
         self.interpolate_btn = PushButton(name='Interpolate')
         self.start_interpolation_btn.clicked.connect(self.enter_interpolation)
         self.extend([
-                self.labels_combo, self.start_interpolation_btn,
-                self.interpolate_btn
+                self.labels_combo, self.interp_dim,
+                self.start_interpolation_btn, self.interpolate_btn
                 ])
         self.interpolate_btn.hide()
-        self.painted_slice_history = defaultdict(set)
-        self.interp_dim = None
+
         self.selected_layer = None
+
+    def update_dim_choices(self, interp_dim):
+        layer_name = self.labels_combo.current_choice
+        if not layer_name:
+            return []
+        return list(range(self.viewer.layers[layer_name].data.ndim))
 
     def get_labels_layers(self, combo):
         """Returns a list of existing labels to display
