@@ -74,6 +74,21 @@ def test_2d_slice_square():
     np.testing.assert_allclose(labels.data[10:20, 10:20, 10:20], 2)
 
 
+def test_interpolate_reversed_slices():
+    space = (100, 100, 100)
+
+    data = np.zeros(shape=space, dtype="uint8")
+
+    data[10, 10:20, 10:20] = 2
+    data[20, 10:20, 10:20] = 2
+
+    labels = Labels(data)
+
+    _interpolate_labels.interpolate_between_slices(labels, 20, 10, 2, 0)
+
+    np.testing.assert_allclose(labels.data[10:20, 10:20, 10:20], 2)
+
+
 def test_3d_slice_ellipsoid():
     label_id = 2
     arraysize = 100
@@ -193,7 +208,7 @@ def test_distance_transform():
     shape = (3, 3)
     image = np.zeros(shape=shape, dtype="uint8")
     image[1, 1] = 3
-    res = _interpolate_labels.distance_transform(image)
+    res = _interpolate_labels.signed_distance_transform(image)
 
     assert res[1, 1] == 1
     np.testing.assert_allclose(res[0, 0], -2**0.5)
@@ -225,12 +240,23 @@ def test_interpolate(make_napari_viewer):
     event.value = paint_history
 
     interp_widget.painted_slice_history[2] = [6, 3]
-    interp_widget.interp_dim = 0
+    interp_widget.interpolate_axis = 0
     interp_widget.selected_layer = viewer.layers[0]
     interp_widget.interpolate(event)
-
-    print(viewer.layers[0].data)
 
     np.testing.assert_allclose(
             viewer.layers[0].data[3], viewer.layers[0].data[4]
             )
+
+
+def test_enter_interpolation_mode(make_napari_viewer):
+    viewer = make_napari_viewer()
+    labels = Labels(np.zeros(shape=(10, 10), dtype=np.uint8), name="Layer 1")
+    labels_2 = Labels(np.zeros(shape=(10, 10), dtype=np.uint8), name="Layer 2")
+
+    viewer.add_layer(labels)
+    viewer.add_layer(labels_2)
+    interp_widget = _interpolate_labels.InterpolateSliceWidget(viewer)
+    interp_widget.labels_combo.value = labels_2
+    interp_widget.enter_interpolation_mode(None)
+    assert interp_widget.selected_layer == labels_2

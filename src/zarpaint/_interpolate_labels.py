@@ -1,5 +1,4 @@
 from collections import defaultdict
-import warnings
 from magicgui.widgets import Container, ComboBox, PushButton
 import napari
 import numpy as np
@@ -7,7 +6,7 @@ from scipy.interpolate import interpn
 from scipy.ndimage import distance_transform_edt
 
 
-def distance_transform(image):
+def signed_distance_transform(image):
     """apply distance transform and return new image
 
     Parameters
@@ -25,7 +24,7 @@ def distance_transform(image):
     return edt
 
 
-def point_and_values(image_1, image_2, interp_dim=0):
+def point_and_values(image_1, image_2, interp_axis=0):
     """apply distance transforms to the 2 images to interpolate.
 
     Apply distance transforms to the 2 images that are going to be 
@@ -38,7 +37,7 @@ def point_and_values(image_1, image_2, interp_dim=0):
         The first slice to interpolate from
     image_2 : _type_
         The second slice to interpolate to
-    interp_dim : int, optional
+    interp_axis : int, optional
         The dimension along which to interpolate, by default 0
 
     Returns
@@ -46,14 +45,14 @@ def point_and_values(image_1, image_2, interp_dim=0):
     tuple of numpy array
         tuple og distance transform data and corresponding location
     """
-    edt_1 = distance_transform(image_1)
-    edt_2 = distance_transform(image_2)
-    values = np.stack([edt_1, edt_2], axis=interp_dim)
+    edt_1 = signed_distance_transform(image_1)
+    edt_2 = signed_distance_transform(image_2)
+    values = np.stack([edt_1, edt_2], axis=interp_axis)
     points = tuple([np.arange(i) for i in values.shape])
     return points, values
 
 
-def xi_coords(shape, percent=0.5, interp_dim=0):
+def xi_coords(shape, percent=0.5, interp_axis=0):
     """ 
     create array of coordinates to interpolate between
     Parameters
@@ -62,7 +61,7 @@ def xi_coords(shape, percent=0.5, interp_dim=0):
         Shape of the slice
     percent : float, optional
         Value to populate the xi array, by default 0.5
-    interp_dim : int, optional
+    interp_axis : int, optional
         The axis to interpolate along , by default 0
 
     Returns
@@ -73,7 +72,7 @@ def xi_coords(shape, percent=0.5, interp_dim=0):
     slices = [slice(0, i) for i in shape]
     xi = np.moveaxis(np.mgrid[slices], 0,
                      -1).reshape(np.prod(shape), len(shape)).astype('float')
-    xi = np.insert(xi, interp_dim, percent, axis=1)
+    xi = np.insert(xi, interp_axis, percent, axis=1)
     return xi
 
 
@@ -99,7 +98,9 @@ def slice_iterator(slice_index_1, slice_index_2):
     return zip(intermediate_slices, intermediate_percentages)
 
 
-def interpolated_slice(percent, points, values, interp_dim=0, method='linear'):
+def interpolated_slice(
+        percent, points, values, interp_axis=0, method='linear'
+        ):
     """Create the dtata for one of the interpolated slices
 
     Parameters
@@ -110,7 +111,7 @@ def interpolated_slice(percent, points, values, interp_dim=0, method='linear'):
         The points of the slice on which to paint
     values : array_like
         Data to draw on the slice
-    interp_dim : int, optional
+    interp_axis : int, optional
         The axis along which to interpolate, by default 0
     method : str, optional
         Interpolation method, by default 'linear'
@@ -122,9 +123,9 @@ def interpolated_slice(percent, points, values, interp_dim=0, method='linear'):
     """
     # TODO: check return type
     img_shape = list(values.shape)
-    del img_shape[interp_dim]
+    del img_shape[interp_axis]
 
-    xi = xi_coords(img_shape, percent=percent, interp_dim=interp_dim)
+    xi = xi_coords(img_shape, percent=percent, interp_axis=interp_axis)
     interpolated_img = interpn(points, values, xi, method=method)
     interpolated_img = np.reshape(interpolated_img, img_shape) > 0
     return interpolated_img
@@ -140,30 +141,32 @@ class InterpolateSliceWidget(Container):
             napari viewer to add the widget to
         """
         super().__init__()
-
         self.viewer = viewer
         self.painted_slice_history = defaultdict(set)
 
         self.labels_combo = ComboBox(
                 name='Labels Layer', choices=self.get_labels_layers
                 )
-        self.interp_dim = ComboBox(
+        self.interp_dim_combo = ComboBox(
                 name="Interpolation Dimension",
                 choices=self.update_dim_choices
                 )
 
         self.start_interpolation_btn = PushButton(name='Start Interpolation')
         self.interpolate_btn = PushButton(name='Interpolate')
-        self.start_interpolation_btn.clicked.connect(self.enter_interpolation)
+        self.start_interpolation_btn.clicked.connect(
+                self.enter_interpolation_mode
+                )
         self.extend([
-                self.labels_combo, self.interp_dim,
+                self.labels_combo, self.interp_dim_combo,
                 self.start_interpolation_btn, self.interpolate_btn
                 ])
         self.interpolate_btn.hide()
 
+        self.interpolate_axis = 0
         self.selected_layer = None
 
-    def update_dim_choices(self, interp_dim):
+    def update_dim_choices(self, interp_dim_combo):
         layer_name = self.labels_combo.current_choice
         if not layer_name:
             return []
@@ -205,15 +208,9 @@ class InterpolateSliceWidget(Container):
         if not real_item:
             return
 
+        # item is list of atoms. atom is (tuple of e.g. (y, x) painted coords, array of original label, new label)
         last_label_history_item = real_item
-        last_label_coords = last_label_history_item[0][
-                0
-                ]  # first history atom is a tuple, first element of atom is coords
-        # here we can determine both the slice index that was painted *and* the interp dim
-        # it wil be the array in last_label_coords that has only one unique element in it
-        # the interp dim will be the index of that array in the tuple
-        if not last_label_coords:
-            return
+        last_label_coords = last_label_history_item[0][0]
 
         unique_coords = list(map(np.unique, last_label_coords))
 
@@ -223,7 +220,7 @@ class InterpolateSliceWidget(Container):
 
         self.painted_slice_history[label_id].add(last_slice_painted)
 
-    def enter_interpolation(self, event):
+    def enter_interpolation_mode(self, event):
         """Connect the paint callback and change button text
 
         Parameters
@@ -240,7 +237,7 @@ class InterpolateSliceWidget(Container):
         self.interpolate_btn.show()
 
         self.interpolate_btn.clicked.connect(self.interpolate)
-        self.interpolate_axis = self.interp_dim.get_value()
+        self.interpolate_axis = self.interp_dim_combo.get_value()
 
     def interpolate(self, event):
         """For each label_id, iterate over each slice that has been painted on
@@ -295,7 +292,7 @@ def interpolate_between_slices(
         interpolation occurs between slice_index_1 slice_index_2
     label_id : int, optional
         the id of the annotation that is to be painted, by default 1
-    interp_dim : int, optional
+    interpolate_axis : int, optional
         the dimension/axis to interpolate across, by default 0
     """
 
@@ -315,7 +312,7 @@ def interpolate_between_slices(
                 percentage,
                 points,
                 values,
-                interp_dim=interpolate_axis,
+                interp_axis=interpolate_axis,
                 method='linear'
                 )
         indices = [slice(None) for _ in range(label_layer.data.ndim)]
