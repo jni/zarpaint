@@ -228,6 +228,9 @@ class InterpolateSliceWidget(Container):
         event : Event
             Event spawned by button click
         """
+        if not self.labels_combo.current_choice:
+            raise RuntimeError("No labels layer selected.")
+
         self.selected_layer = self.viewer.layers[
                 self.labels_combo.current_choice]
 

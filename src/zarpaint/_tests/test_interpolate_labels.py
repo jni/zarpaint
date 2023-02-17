@@ -4,6 +4,7 @@ from napari.layers import Labels
 from skimage.draw import ellipse, ellipsoid
 from zarpaint._interpolate_labels import interpolate_between_slices
 from unittest.mock import MagicMock
+import pytest
 
 
 def test_2d_slice_ellipse():
@@ -262,3 +263,10 @@ def test_enter_interpolation_mode(make_napari_viewer):
     assert interp_widget.selected_layer == labels_2
     assert interp_widget.labels_combo.enabled == False
     assert interp_widget.interp_dim_combo.enabled == False
+
+
+def test_enter_interpolation_mode_no_labels(make_napari_viewer):
+    viewer = make_napari_viewer()
+    interp_widget = _interpolate_labels.InterpolateSliceWidget(viewer)
+    with pytest.raises(RuntimeError):
+        interp_widget.enter_interpolation_mode(None)
