@@ -260,3 +260,5 @@ def test_enter_interpolation_mode(make_napari_viewer):
     interp_widget.labels_combo.value = labels_2
     interp_widget.enter_interpolation_mode(None)
     assert interp_widget.selected_layer == labels_2
+    assert interp_widget.labels_combo.enabled == False
+    assert interp_widget.interp_dim_combo.enabled == False

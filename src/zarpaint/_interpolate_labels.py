@@ -238,6 +238,8 @@ class InterpolateSliceWidget(Container):
 
         self.interpolate_btn.clicked.connect(self.interpolate)
         self.interpolate_axis = self.interp_dim_combo.get_value()
+        self.labels_combo.enabled = False
+        self.interp_dim_combo.enabled = False
 
     def interpolate(self, event):
         """For each label_id, iterate over each slice that has been painted on
@@ -270,6 +272,8 @@ class InterpolateSliceWidget(Container):
 
         self.interpolate_btn.hide()
         self.start_interpolation_btn.show()
+        self.labels_combo.enabled = True
+        self.interp_dim_combo.enabled = True
 
 
 def interpolate_between_slices(
