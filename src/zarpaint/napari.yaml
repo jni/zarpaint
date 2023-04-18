@@ -23,6 +23,9 @@ contributions:
   - id: zarpaint.copy_data
     title: Copy Data…
     python_name: zarpaint:copy_data
+  - id: zarpaint.interpolate_widg
+    title: Interpolate
+    python_name: zarpaint._interpolate_labels:InterpolateSliceWidget
     
   readers:
   - command: zarpaint.get_reader
@@ -42,3 +45,5 @@ contributions:
     display_name: Split With Watershed
   - command: zarpaint.copy_data
     display_name: Copy Data
+  - command: zarpaint.interpolate_widg
+    display_name: Interpolate Slices

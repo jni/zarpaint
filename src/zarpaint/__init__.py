@@ -9,6 +9,7 @@ from ._watershed import watershed_split
 from ._add_3d_points import add_points_3d_with_alt_click
 from .reader import zarr_tensorstore
 from ._copy_data import copy_data
+from ._interpolate_labels import interpolate_between_slices
 
 __all__ = [
         'create_labels',
@@ -19,4 +20,5 @@ __all__ = [
         'add_points_3d_with_alt_click',
         'zarr_tensorstore'
         'copy_data',
+        'interpolate_between_slices',
         ]
