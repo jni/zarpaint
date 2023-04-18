@@ -1,4 +1,5 @@
 from magicgui import magic_factory
+from ._normalize import normalize_dtype
 
 
 @magic_factory
@@ -14,4 +15,5 @@ def copy_data(
     ndim_dst = dst_data.ndim
     slice_ = napari_viewer.dims.current_step
     slicing = slice_[:ndim_dst - ndim_src]
-    dst_data[slicing] = src_data
+    dst_data[slicing] = src_data.astype(normalize_dtype(target_layer.dtype))
+    target_layer.refresh()
