@@ -30,19 +30,22 @@ def _set_default_labels_path(widget, source_image):
 
 
 def _on_create_labels_init(widget):
+    """Ensure changes to the source image change the default labels path."""
     widget.source_image.changed.connect(_set_default_labels_path(widget))
 
 
 def create_ts_meta(labels_file: pathlib.Path, metadata):
     """Create bespoke metadata yaml file within zarr array."""
     fn = os.path.join(labels_file, '.naparimeta.yml')
-    with open(fn, 'w') as fout:        for key, val in metadata.items():
+    with open(fn, 'w') as fout:
+        for key, val in metadata.items():
             if type(val) == np.ndarray:
                 if np.issubdtype(val.dtype, np.floating):
                     metadata[key] = list(map(float, val))
                 else:
                     metadata[key] = list(map(int, val))
         yaml.dump(metadata, fout)
+
 
 def open_ts_meta(labels_file: pathlib.Path) -> dict:
     """Open bespoke metadata yaml file within zarr array, if present."""
@@ -57,7 +60,6 @@ def open_zarr(labels_file: pathlib.Path, *, shape=None, chunks=None):
     """Open a zarr file, with tensorstore if available, with zarr otherwise.
 
     If the file doesn't exist, it is created.
-
     Parameters
     ----------
     labels_file : Path
