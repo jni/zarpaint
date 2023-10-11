@@ -1,15 +1,11 @@
-from __future__ import annotations
-
 import ast
 import os
 import yaml
 
 from magicgui import magic_factory
-import dask.array as da
 import napari
 import numpy as np
 import pathlib
-from pathlib import Path
 try:
     import tensorstore as ts
     tensorstore_available = True
@@ -45,7 +41,6 @@ def create_ts_meta(labels_file: pathlib.Path, metadata):
                 else:
                     metadata[key] = list(map(int, val))
         yaml.dump(metadata, fout)
-
 
 def open_ts_meta(labels_file: pathlib.Path) -> dict:
     """Open bespoke metadata yaml file within zarr array, if present."""
