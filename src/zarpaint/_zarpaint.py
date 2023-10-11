@@ -53,13 +53,15 @@ def open_ts_meta(labels_file: pathlib.Path) -> dict:
     meta = {}
     if os.path.exists(fn):
         with open(fn, 'r') as fin:
-            meta = yaml.safe_load(fin)    return meta
+            meta = yaml.safe_load(fin)
+    return meta
 
 
 def open_zarr(labels_file: pathlib.Path, *, shape=None, chunks=None):
     """Open a zarr file, with tensorstore if available, with zarr otherwise.
 
     If the file doesn't exist, it is created.
+
     Parameters
     ----------
     labels_file : Path
@@ -107,21 +109,24 @@ def open_zarr(labels_file: pathlib.Path, *, shape=None, chunks=None):
 @magic_factory(
         labels_file={'mode': 'w'},
         widget_init=_on_create_labels_init,
-        )def create_labels(
+        )
+def create_labels(
         source_image: napari.layers.Image,
         labels_file: pathlib.Path,
         chunks='',
         ) -> napari.types.LayerDataTuple:
     """Create/load a zarr array as a labels layer based on image layer.
 
-    Parameters    ----------
+    Parameters
+    ----------
     source_image : Image layer
         The image that we are segmenting.
     labels_file : pathlib.Path
         The path to the zarr file to be created.
     chunks : str, optional
         A string that can be evaluated as a tuple of ints specifying the chunk
-        size for the zarr file. If empty, they will be (128, 128) along the        last dimensions and (1) along any remaining dimensions. This argument
+        size for the zarr file. If empty, they will be (128, 128) along the
+        last dimensions and (1) along any remaining dimensions. This argument
         has no effect if the file already exists.
     """
     if chunks:
