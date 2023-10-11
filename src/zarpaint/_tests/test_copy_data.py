@@ -1,8 +1,6 @@
-from napari.layers import Labels
 from zarpaint import copy_data
 import numpy as np
-import tensorstore as ts
-from zarpaint import open_tensorstore
+from zarpaint import open_zarr
 import zarr
 
 def test_copy_data(make_napari_viewer):
@@ -19,7 +17,7 @@ def test_copy_data(make_napari_viewer):
 def test_copy_data_tensorstore(make_napari_viewer, tmp_path):
     viewer = make_napari_viewer()
     labels_layer1 = viewer.add_labels(np.random.randint(0, 2**23, size=(10, 20, 30)))
-    array2 = open_tensorstore(tmp_path/"example.zarr", shape=(2, 10, 20, 30), chunks=(1, 1, 20, 30))
+    array2 = open_zarr(tmp_path / "example.zarr", shape=(2, 10, 20, 30), chunks=(1, 1, 20, 30))
     labels_layer2 = viewer.add_labels(array2)
     viewer.dims.set_point(axis=0, value=1)
     widget = copy_data()

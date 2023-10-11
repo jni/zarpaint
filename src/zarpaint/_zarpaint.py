@@ -10,7 +10,11 @@ import napari
 import numpy as np
 import pathlib
 from pathlib import Path
-import tensorstore as ts
+try:
+    import tensorstore as ts
+    tensorstore_available = True
+except ModuleNotFoundError:
+    tensorstore_available = False
 import zarr
 import toolz as tz
 
@@ -34,8 +38,7 @@ def _on_create_labels_init(widget):
 def create_ts_meta(labels_file: pathlib.Path, metadata):
     """Create bespoke metadata yaml file within zarr array."""
     fn = os.path.join(labels_file, '.naparimeta.yml')
-    with open(fn, 'w') as fout:
-        for key, val in metadata.items():
+    with open(fn, 'w') as fout:        for key, val in metadata.items():
             if type(val) == np.ndarray:
                 if np.issubdtype(val.dtype, np.floating):
                     metadata[key] = list(map(float, val))
@@ -54,7 +57,25 @@ def open_ts_meta(labels_file: pathlib.Path) -> dict:
     return meta
 
 
-def open_tensorstore(labels_file: pathlib.Path, *, shape=None, chunks=None):
+def open_zarr(labels_file: pathlib.Path, *, shape=None, chunks=None):
+    """Open a zarr file, with tensorstore if available, with zarr otherwise.
+
+    If the file doesn't exist, it is created.
+
+    Parameters
+    ----------
+    labels_file : Path
+        The output file name.
+    shape : tuple of int
+        The shape of the array.
+    chunks : tuple of int
+        The chunk size of the array.
+
+    Returns
+    -------
+    data : ts.Array or zarr.Array
+        The array loaded from file.
+    """
     if not os.path.exists(labels_file):
         zarr.open(
                 str(labels_file),
@@ -74,38 +95,35 @@ def open_tensorstore(labels_file: pathlib.Path, *, shape=None, chunks=None):
     dir, name = os.path.split(labels_file)
     labels_ts_spec = {
             'driver': 'zarr',
-            'kvstore': {
-                    'driver': 'file',
-                    'path': dir,
-                    },
+            'kvstore': {'driver': 'file', 'path': dir},
             'path': name,
             'metadata': metadata,
             }
-    data = ts.open(labels_ts_spec, create=False, open=True).result()
+    if tensorstore_available:
+        data = ts.open(labels_ts_spec, create=False, open=True).result()
+    else:
+        data = labels_temp
     return data
 
 
 @magic_factory(
         labels_file={'mode': 'w'},
         widget_init=_on_create_labels_init,
-        )
-def create_labels(
+        )def create_labels(
         source_image: napari.layers.Image,
         labels_file: pathlib.Path,
         chunks='',
         ) -> napari.types.LayerDataTuple:
     """Create/load a zarr array as a labels layer based on image layer.
 
-    Parameters
-    ----------
+    Parameters    ----------
     source_image : Image layer
         The image that we are segmenting.
     labels_file : pathlib.Path
         The path to the zarr file to be created.
     chunks : str, optional
         A string that can be evaluated as a tuple of ints specifying the chunk
-        size for the zarr file. If empty, they will be (128, 128) along the
-        last dimensions and (1) along any remaining dimensions. This argument
+        size for the zarr file. If empty, they will be (128, 128) along the        last dimensions and (1) along any remaining dimensions. This argument
         has no effect if the file already exists.
     """
     if chunks:
@@ -120,7 +138,7 @@ def create_labels(
     else:  # use default
         chunks = (1,) * (source_image.ndim - 2) + (128, 128)
 
-    layer_data = open_tensorstore(
+    layer_data = open_zarr(
             labels_file,
             shape=source_image.data.shape,
             chunks=chunks,
