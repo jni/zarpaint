@@ -17,13 +17,15 @@ import toolz as tz
 
 @tz.curry
 def _set_default_labels_path(widget, source_image):
-    if (hasattr(source_image, 'source')  # napari <0.4.8
-                and source_image.source.path is not None):
+    """Helper function to set the default output path next to source image.
+
+    When the widget to create a labels layer is instantiated, it asks for
+    a filename. This function sets the default to be next to the original
+    file.
+    """
+    if source_image.source.path is not None:
         source_path = pathlib.Path(source_image.source.path)
-        if source_path.suffix != '.zarr':
-            labels_path = source_path.with_suffix('.zarr')
-        else:
-            labels_path = source_path.with_suffix('.labels.zarr')
+        labels_path = source_path.with_suffix('.labels.zarr')
         widget.labels_file.value = labels_path
 
 
@@ -48,8 +50,7 @@ def open_ts_meta(labels_file: pathlib.Path) -> dict:
     meta = {}
     if os.path.exists(fn):
         with open(fn, 'r') as fin:
-            meta = yaml.safe_load(fin)
-    return meta
+            meta = yaml.safe_load(fin)    return meta
 
 
 def open_zarr(labels_file: pathlib.Path, *, shape=None, chunks=None):
