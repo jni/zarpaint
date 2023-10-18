@@ -1,3 +1,14 @@
+import warnings
+
+try:
+    import tensorstore
+except ImportError:
+    warnings.warn(
+        "\nzarpaint performance is much faster if tensorstore is also installed.\n"
+        "It is recommended to install tensorstore with:\n"
+        "python -m pip install tensorstore\n"
+    )
+
 try:
     from ._version import version as __version__
 except ImportError:
