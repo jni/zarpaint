@@ -36,7 +36,7 @@ def get_data_ray(data, start_point, end_point):
     return clipped_coords, ray
 
 
-def find_midpoint_of_first_segment(layer, event):
+def find_midpoint_of_first_segment(layer, dims, event):
     """Return the world coordinate of a Labels layer mouse event in 2D or 3D.
 
     In 2D, this is just the event's position.
@@ -58,14 +58,14 @@ def find_midpoint_of_first_segment(layer, event):
     coordinates : array of int
         The world coordinates for the mouse event.
     """
-    ndim = len(layer._dims_displayed)
+    ndim = len(dims.displayed)
     if ndim == 2:
         coordinates = event.position
     else:  # 3d
         start, end = layer.get_ray_intersections(
                 position=event.position,
                 view_direction=event.view_direction,
-                dims_displayed=layer._dims_displayed,
+                dims_displayed=list(dims.displayed),
                 world=True,
                 )
         coordinates, ray = get_data_ray(layer.data, start, end)
@@ -85,6 +85,7 @@ def find_midpoint_of_first_segment(layer, event):
 
 @magicgui.magic_factory
 def add_points_3d_with_alt_click(
+        viewer: napari.Viewer,
         labels: napari.layers.Labels,
         points: napari.layers.Points,
         ):
@@ -95,7 +96,9 @@ def add_points_3d_with_alt_click(
         if not (len(event.modifiers) == 1
                 and event.modifiers[0].name == 'Alt'):
             return
-        world_click_coordinates = find_midpoint_of_first_segment(layer, event)
+        world_click_coordinates = find_midpoint_of_first_segment(
+                layer, viewer.dims, event
+                )
         if world_click_coordinates is not None:
             pts_coordinates = pts_world2data(world_click_coordinates)
             points.add(pts_coordinates)
