@@ -46,6 +46,7 @@ def test_get_ray_coordinates():
 
 def test_midpoint_2d_empty_ray(make_napari_viewer):
     viewer = make_napari_viewer()
+    dims = viewer.dims
 
     mock_data = np.zeros(shape=(5, 5), dtype="uint8")
     layer_data = Labels(mock_data)
@@ -55,12 +56,13 @@ def test_midpoint_2d_empty_ray(make_napari_viewer):
     view_direction = [1, 0]
     mouse_event = MockMouseEvent(position, view_direction)
 
-    result = find_midpoint_of_first_segment(layer_data, mouse_event)
+    result = find_midpoint_of_first_segment(layer_data, dims, mouse_event)
     assert result == (0, 0)
 
 
 def test_midpoint_2d_nonempty_ray(make_napari_viewer):
     viewer = make_napari_viewer()
+    dims = viewer.dims
 
     mock_data = np.ones(shape=(5, 5), dtype="uint8")
     layer_data = Labels(mock_data)
@@ -70,13 +72,14 @@ def test_midpoint_2d_nonempty_ray(make_napari_viewer):
     view_direction = [1, 0]
     mouse_event = MockMouseEvent(position, view_direction)
 
-    result = find_midpoint_of_first_segment(layer_data, mouse_event)
+    result = find_midpoint_of_first_segment(layer_data, dims, mouse_event)
     assert result == (3, 0)
 
 
 def test_midpoint_3d_empty_ray(make_napari_viewer):
     viewer = make_napari_viewer()
     viewer.dims.ndisplay = 3
+    dims = viewer.dims
 
     mock_data = np.zeros(shape=(5, 5, 5), dtype="uint8")
     layer_data = Labels(mock_data)
@@ -84,7 +87,7 @@ def test_midpoint_3d_empty_ray(make_napari_viewer):
 
     viewer.add_layer(layer_data)
 
-    result = find_midpoint_of_first_segment(layer_data, mouse_event)
+    result = find_midpoint_of_first_segment(layer_data, dims, mouse_event)
     assert result is None
 
     mock_data[1:4, 1:4, 1:4] = 1
@@ -93,13 +96,14 @@ def test_midpoint_3d_empty_ray(make_napari_viewer):
 
     viewer.add_layer(layer_data)
 
-    result = find_midpoint_of_first_segment(layer_data, mouse_event)
+    result = find_midpoint_of_first_segment(layer_data, dims, mouse_event)
     assert result is None
 
 
 def test_midpoint_3d_nonempty_ray(make_napari_viewer):
     viewer = make_napari_viewer()
     viewer.dims.ndisplay = 3
+    dims = viewer.dims
 
     mock_data = np.zeros(shape=(5, 5, 5), dtype="uint8")
     mock_data[1:4, 1:4, 1:4] = 1
@@ -107,7 +111,7 @@ def test_midpoint_3d_nonempty_ray(make_napari_viewer):
     viewer.add_layer(layer_data)
 
     mouse_event = MockMouseEvent((2, 2, 0), [0, 1, 1])
-    result = find_midpoint_of_first_segment(layer_data, mouse_event)
+    result = find_midpoint_of_first_segment(layer_data, dims, mouse_event)
     np.testing.assert_allclose(result, [2., 3.5, 1.5])
 
 
