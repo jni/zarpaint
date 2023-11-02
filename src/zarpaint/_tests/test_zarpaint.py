@@ -128,7 +128,7 @@ def test_add_point_3d_alt_click(make_napari_viewer):
     viewer.layers.selection.active = label_layer
 
     point_widget = add_points_3d_with_alt_click()
-    point_widget(label_layer, points_layer)
+    point_widget(viewer, label_layer, points_layer)
 
     view = viewer.window._qt_viewer
     click_coordinates = (view.canvas.size[0] / 2, view.canvas.size[1] / 2, 0)
