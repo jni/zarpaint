@@ -1,5 +1,6 @@
 import ast
 import os
+import warnings
 import yaml
 
 from magicgui import magic_factory
@@ -11,6 +12,7 @@ try:
     tensorstore_available = True
 except ModuleNotFoundError:
     tensorstore_available = False
+    have_warned = False
 import zarr
 import toolz as tz
 
@@ -102,6 +104,15 @@ def open_zarr(labels_file: pathlib.Path, *, shape=None, chunks=None):
     if tensorstore_available:
         data = ts.open(labels_ts_spec, create=False, open=True).result()
     else:
+        global have_warned
+        if not have_warned:
+            warnings.warn(
+                    'tensorstore not available, falling back to zarr.\n'
+                    'Drawing with tensorstore is *much faster*. We recommend '
+                    'you install tensorstore with '
+                    '`python -m pip install tensorstore`.'
+                    )
+            have_warned = True
         data = labels_temp
     return data
 
