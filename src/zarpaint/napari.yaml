@@ -1,5 +1,5 @@
 name: zarpaint
-schema_version: 0.1.0
+schema_version: 0.2.0
 contributions:
   commands:
   - id: zarpaint.add_points_3d_with_alt_click
@@ -42,3 +42,16 @@ contributions:
     display_name: Split With Watershed
   - command: zarpaint.copy_data
     display_name: Copy Data
+
+  menus:
+    napari/file/new_layer:
+    - command: zarpaint.create_labels
+    napari/layers/visualize:
+      - command: zarpaint.DimsSorter
+      - command: zarpaint.set_axis_labels
+    napari/layers/annotate:
+    - command: zarpaint.add_points_3d_with_alt_click
+    napari/layers/data:
+    - command: zarpaint.copy_data
+    napari/layers/segment:
+    - command: zarpaint.watershed_split
