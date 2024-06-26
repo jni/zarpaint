@@ -69,7 +69,7 @@ def test_watershed_split_3d_with_blobs(make_napari_viewer):
             blob_size_fraction=0.1,
             n_dim=3,
             volume_fraction=0.1,
-            seed=0
+            rng=0,
             )
     labeled_blobs = ndi.label(blobs)[0]
     viewer = make_napari_viewer()
