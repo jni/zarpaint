@@ -25,8 +25,9 @@ def test_create_labels():
         assert layer_type == 'labels'
         assert os.path.exists(pth)
         assert len(os.listdir(pth)) == 2  # .zarray, .naparimeta.yml
-        arr[4, :256, :256] = 1  # touch 4 chunks
-        assert len(os.listdir(pth)) == 6
+        arr[:4, :64, :64] = 1  # touch 4 chunks along axis 0
+        assert len(os.listdir(pth)) == 3
+        assert len(os.listdir(os.path.join(pth, 'c'))) == 4
 
 
 def test_dims_sorter(make_napari_viewer):
@@ -62,5 +63,6 @@ def test_open_tensorstore():
         assert layer_type == 'labels'
         assert os.path.exists(pth)
         assert len(os.listdir(pth)) == 2  # .zarray, .naparimeta.yml
-        arr[4, :256, :256] = 2  # touch 4 chunks
-        assert len(os.listdir(pth)) == 6
+        arr[:4, :64, :64] = 2  # touch 4 chunks along axis 0
+        assert len(os.listdir(pth)) == 3
+        assert len(os.listdir(os.path.join(pth, 'c'))) == 4
