@@ -88,18 +88,17 @@ def open_zarr(labels_file: pathlib.Path, *, shape=None, chunks=None):
                 )
     # read some of the metadata for tensorstore driver from file
     labels_temp = zarr.open(str(labels_file), mode='a')
-    metadata = {
-            'dtype': labels_temp.dtype.str,
-            'order': labels_temp.order,
-            'shape': labels_temp.shape,
-            }
 
     dir, name = os.path.split(labels_file)
+    driver = (
+            'zarr3'
+            if os.path.exists(os.path.join(labels_file, 'zarr.json'))
+            else 'zarr2'
+            )
     labels_ts_spec = {
-            'driver': 'zarr',
+            'driver': driver,
             'kvstore': {'driver': 'file', 'path': dir},
             'path': name,
-            'metadata': metadata,
             }
     if tensorstore_available:
         data = ts.open(labels_ts_spec, create=False, open=True).result()
