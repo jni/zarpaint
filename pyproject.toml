@@ -59,7 +59,7 @@ where = ["src"]
 include = ["zarpaint"]
 
 [tool.setuptools_scm]
-write_to = ["src/zarpaint/_version.py"]
+write_to = "src/zarpaint/_version.py"
 
 [project.entry-points."napari.manifest"]
 zarpaint = "zarpaint:napari.yaml"
