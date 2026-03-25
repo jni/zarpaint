@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import tempfile
 import napari
 import numpy as np
@@ -16,17 +17,21 @@ def test_create_labels():
             )
     create_labels_ = create_labels()  # instance from magic_factory
     with tempfile.TemporaryDirectory() as tmpdir:
-        pth = os.path.join(tmpdir, 'labels.zarr')
+        pth = Path(tmpdir) / 'labels.zarr'
         arr, meta, layer_type = create_labels_(image, pth, str((1, 128, 128)))
         # note that arr.shape is an array if arr is tensorstore.Array
         assert tuple(arr.shape) == image.data.shape
         for key, val in meta.items():
             assert_array_equal(getattr(image, key), val)
         assert layer_type == 'labels'
-        assert os.path.exists(pth)
-        assert len(os.listdir(pth)) == 2  # .zarray, .naparimeta.yml
-        arr[4, :256, :256] = 1  # touch 4 chunks
-        assert len(os.listdir(pth)) == 6
+        assert pth.exists()
+        assert len(list(pth.iterdir())) == 2  # .zarray/zarr.json, .naparimeta.yml
+        arr[:4, :64, :64] = 1  # touch 4 chunks along axis 0
+        if (pth / '.zarray').exists():  # zarr v2
+            assert len(list(pth.iterdir())) == 6
+        else:  # zarr v3
+            assert len(os.listdir(pth)) == 3
+            assert len(os.listdir(os.path.join(pth, 'c'))) == 4
 
 
 def test_dims_sorter(make_napari_viewer):
@@ -51,7 +56,7 @@ def test_open_tensorstore():
             )
     create_labels_ = create_labels()  # instance from magic_factory
     with tempfile.TemporaryDirectory() as tmpdir:
-        pth = os.path.join(tmpdir, 'labels.zarr')
+        pth = Path(tmpdir) / 'labels.zarr'
         _ = create_labels_(image, pth, str((1, 128, 128)))
         # note that arr.shape is an array if arr is tensorstore.Array
         reader = zarr_tensorstore(pth)
@@ -60,7 +65,11 @@ def test_open_tensorstore():
         for key, val in meta.items():
             assert_array_equal(getattr(image, key), val)
         assert layer_type == 'labels'
-        assert os.path.exists(pth)
-        assert len(os.listdir(pth)) == 2  # .zarray, .naparimeta.yml
-        arr[4, :256, :256] = 2  # touch 4 chunks
-        assert len(os.listdir(pth)) == 6
+        assert pth.exists()
+        assert len(list(pth.iterdir())) == 2  # .zarray/zarr.json, .naparimeta.yml
+        arr[:4, :64, :64] = 2  # touch 4 chunks along axis 0
+        if (pth / '.zarray').exists():  # zarr v2
+            assert len(list(pth.iterdir())) == 6
+        else:  # zarr v3
+            assert len(os.listdir(pth)) == 3
+            assert len(os.listdir(os.path.join(pth, 'c'))) == 4

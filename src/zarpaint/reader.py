@@ -6,6 +6,10 @@ from ._zarpaint import open_zarr, open_ts_meta
 
 
 def zarr_tensorstore(path: str | pathlib.Path):
-    if (str(path).endswith('.zarr') and os.path.isdir(path)
-                and '.zarray' in os.listdir(path)):
+    if (
+            str(path).endswith('.zarr')
+            and os.path.isdir(path)
+            and ('.zarray' in os.listdir(path)
+                 or 'zarr.json' in os.listdir(path))
+            ):
         return lambda p: [(open_zarr(p), open_ts_meta(path), 'labels')]

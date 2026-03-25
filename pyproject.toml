@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools", "setuptools_scm", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zarpaint"
+description = "Paint segmentations directly to on-disk/remote zarr arrays"
+dynamic = ["version"]
+authors = [
+   {name = "Abigail S McGovern"},
+   {name = "Juan Nunez-Iglesias", email = "jni@image.coop"}
+   ]
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Framework :: napari",
+    "Topic :: Software Development :: Testing",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Operating System :: OS Independent"
+    ]
+requires-python = ">=3.10"
+dependencies = [
+    "magicgui",
+    "napari>=0.4.19",
+    "numpy",
+    "pyyaml",
+    "qtpy",
+    "scikit-image>=0.21",
+    "scipy",
+    "toolz",
+    "zarr>=2.11"
+    ]
+readme = {file = "README.md", content-type = "text/markdown"}
+
+[project.optional-dependencies]
+testing = [
+    "coverage",
+    "napari[pyqt5]",
+    "pytest",
+    "pytest-cov",
+    "pytest-qt"
+    ]
+all = ["tensorstore"]
+
+[project.urls]
+Source = "https://github.com/jni/zarpaint"
+Bug_Tracker = "https://github.com/jni/zarpaint/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["zarpaint"]
+
+[tool.setuptools_scm]
+write_to = "src/zarpaint/_version.py"
+
+[project.entry-points."napari.manifest"]
+zarpaint = "zarpaint:napari.yaml"
