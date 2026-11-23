@@ -151,9 +151,14 @@ def create_labels(
     else:  # use default
         chunks = (1,) * (source_image.ndim - 2) + (128, 128)
 
+    if source_image.rgb:
+        shape = source_image.data.shape[:-1]
+    else:
+        shape = source_image.data.shape
+
     layer_data = open_zarr(
             labels_file,
-            shape=source_image.data.shape,
+            shape=shape,
             chunks=chunks,
             )
     layer_type = 'labels'
